@@ -1,0 +1,12 @@
+.form-select {
+    background-color: #545b62;
+    color: #ced4da;
+    border: 1px solid rgba(255,255,255,.125);
+}
+.analysis-footer {
+    padding: 2.5rem 0;
+    color: #999;
+    text-align: center;
+    background-color: #212529;
+    border-top: 1px solid rgba(255,255,255,.125);
+}
