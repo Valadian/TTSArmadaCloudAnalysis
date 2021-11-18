@@ -64,10 +64,18 @@ function AnalysisModel(df){
         return filtered
     },this)
     this.df_first =  ko.computed(function(){
-        return this.df_filtered().loc({rows:this.df_filtered()['first'].eq("True")})
+        if(this.df_filtered().$index.length>0){
+            return this.df_filtered().loc({rows:this.df_filtered()['first'].eq("True")})
+        } else{
+            return []
+        }
     },this)
     this.df_second =  ko.computed(function(){
-        return this.df_filtered().loc({rows:this.df_filtered()['first'].ne("True")})
+        if(this.df_filtered().$index.length>0){
+            return this.df_filtered().loc({rows:this.df_filtered()['first'].ne("True")})
+        } else{
+            return []
+        }
     },this)
     this.groupby_metrics = ko.computed(function(){
         if (this.groupby()==""){
@@ -84,50 +92,48 @@ function AnalysisModel(df){
         return this.df_filtered().$index.length
     },this)
     this.meanMoV = ko.computed(function(){
-        return this.df_filtered()['MoV'].mean()
+        if(this.df_filtered().$index.length>0){
+            return this.df_filtered()['MoV'].mean()
+        } else {
+            return 0
+        }
     },this)
     this.players = ko.computed(function(){
         return this.df_filtered_bycmdr()['name'].unique().values.sort((a, b) => String(a).localeCompare(String(b), undefined, {sensitivity: 'base'}))
     },this)
     this.pointshist = ko.computed(function(){
-        var trace1 = {}
-        if (this.df_first()['points']){
-            var trace1 = {
-                name: 'First',
-                x: this.df_first()['points'].values,
-                type: 'histogram',
-                histnorm: 'probability',
-                // cumulative: {enabled: true},
-                opacity:0.6,
-                marker: {
-                    color: '#d4af37',
-                    // pattern: {
-                    //     bgcolor: 'transparent'
-                    // }
-                },
-                xbins: {start:0.5,size:1,end:10.5},
-                cumulative: {enabled: true}
-            }
+        var trace1 = {
+            name: 'First',
+            x: (this.df_first()['points'] ? this.df_first()['points'].values: []),
+            type: 'histogram',
+            histnorm: 'probability',
+            // cumulative: {enabled: true},
+            opacity:0.6,
+            marker: {
+                color: '#d4af37',
+                // pattern: {
+                //     bgcolor: 'transparent'
+                // }
+            },
+            xbins: {start:0.5,size:1,end:10.5},
+            cumulative: {enabled: true}
         }
-        var trace2 = {}
-        if (this.df_second()['points']){
-            var trace2 = {
-                name: 'Second',
-                x: this.df_second()['points'].values,
-                type: 'histogram',
-                histnorm: 'probability',
-                // cumulative: {enabled: true},
-                opacity:0.6,
-                marker: {
-                    color: '#C0C0C0'
-                },
-                xbins: {start:0.5,size:1,end:10.5},
-                // cumulative: {enabled: true}
-                hoverlabel: {
-                    bgcolor: '#30303080'
-                },
-                cumulative: {enabled: true}
-            }
+        var trace2 = {
+            name: 'Second',
+            x: (this.df_second()['points'] ? this.df_second()['points'].values: []),
+            type: 'histogram',
+            histnorm: 'probability',
+            // cumulative: {enabled: true},
+            opacity:0.6,
+            marker: {
+                color: '#C0C0C0'
+            },
+            xbins: {start:0.5,size:1,end:10.5},
+            // cumulative: {enabled: true}
+            hoverlabel: {
+                bgcolor: '#30303080'
+            },
+            cumulative: {enabled: true}
         }
         // var trace3 = {
         //     name: 'Second',
