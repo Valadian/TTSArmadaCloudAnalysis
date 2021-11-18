@@ -153,13 +153,24 @@ function AnalysisModel(df){
             // barmode: "overlay",
             title: "Tournament Points", 
             xaxis: {title: "Points"}, 
-            yaxis: {title: "Probability"},
+            // yaxis: {title: "Probability"},
             plot_bgcolor:"transparent",
             paper_bgcolor:"transparent",
             font: {
                 color: "white"
             },
-            hoverlabel: { bgcolor: '#000' }
+            hoverlabel: { bgcolor: '#000' },
+            legend: {
+                x: 0,
+                y: 1,
+                bgcolor: '#303030',
+            },
+            margin: {
+                b: 40,
+                l: 40,
+                r: 20,
+                t: 40,
+            }
         }
         var config = {
             showEditInChartStudio: true,
