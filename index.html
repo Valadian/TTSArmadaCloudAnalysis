@@ -12,6 +12,7 @@
     <script src="analysis.js"></script>
     <link rel="stylesheet" href="analysis.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@forevolve/bootstrap-dark@1.0.0/dist/css/bootstrap-dark.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css">
     <title>TTS Cloud Analysis Tool</title>
     <link rel="icon" type="image/x-icon" href="valadian.ico">
 </head>
@@ -73,9 +74,17 @@
                             <label class="btn btn-secondary" data-bind="css: { active: groupby()=='commander'}">
                                 <input type="radio" name="grouping" value="commander" data-bind="checked: groupby" autocomplete="off"> Commander
                             </label>
-                            <label class="btn btn-secondary" data-bind="css: { active: groupby()=='player'}">
+                            <label class="btn btn-secondary" data-bind="css: { active: groupby()=='name'}">
                                 <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
                             </label>
+                            <div class="btn-group" role="group">
+                                <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype'}">
+                                  Ship Type
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1" data-bind="foreach: ships">
+                                  <li><a class="dropdown-item" data-bind="click: function(data, event) { $root.selectedShips(name()); $root.groupby('shiptype'); }, text:name"></a></li>
+                                </ul>
+                              </div>
                             <!-- <button class="btn btn-primary">No Grouping</button>
                             <button class="btn btn-primary">Faction</button>
                             <button class="btn btn-primary">Commander</button>
@@ -84,7 +93,11 @@
                     </div>
                 </div>
                 
-                <div class="card mt-3">
+                <div id="loading" class="d-flex align-items-center mt-3" data-bind>
+                    <strong>Loading...</strong>
+                    <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+                </div>
+                <div id="scores" class="card mt-3 invisible">
                     <div class="card-header">
                         Scores
                     </div>
@@ -92,7 +105,7 @@
                         <div id="plot_hist"></div>
                     </div>
                 </div>
-                <div class="card mt-3">
+                <div id="statistics" class="card mt-3 invisible">
                     <div class="card-header">
                         Statistics
                     </div>
@@ -103,30 +116,41 @@
                                 Number of Games: <span data-bind="text: numberOfGames"></span>
                             </div>
                             <div class="col-6">
-                                Mean MoV: <span data-bind="text: meanMoV"></span>
+                                Mean MoV: <span data-bind="text: meanMoV().toFixed(2)"></span>
                             </div>
                         </div>
                         <!-- /ko-->
                         
                         <!-- ko if: groupby()!='' -->
-                            <div class="row">
-                                <div class="col-4">Group:</div>
-                                <div class="col-4">Number of Games:</div>
-                                <div class="col-4">Average Points:</div>
-                            </div>
+
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Group:</th>
+                                    <th scope="col" class="text-end">Number of Games:</th>
+                                    <th scope="col">Average Points:</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                             <!-- ko foreach: groupby_metrics-->
-                            <div class="row">
-                                <div class="col-4">
-                                    <span data-bind="text: $data[0]"></span>
-                                </div>
-                                <div class="col-4">
-                                    <span data-bind="text: $data[2]"></span>
-                                </div>
-                                <div class="col-4">
-                                    <span data-bind="text: $data[1].toFixed(2)"></span>
-                                </div>
-                            </div>
+                                <tr>
+                                    <td>
+                                        <span data-bind="text: $data[0]" style="white-space:pre-wrap; word-wrap:break-word"></span>
+                                    </td>
+                                    <td class="text-end">
+                                        <!-- ko if: $data[2]>10 && $data[2]<30-->
+                                        <i class="bi bi-exclamation-triangle-fill" style="color: yellow"></i>&nbsp;
+                                        <!-- /ko -->
+                                        <!-- ko if: $data[2]<=10 -->
+                                        <i class="bi bi-exclamation-triangle-fill" style="color: red"></i>&nbsp;
+                                        <!-- /ko -->
+                                        <span data-bind="text: $data[2]" style="display:inline-block;width:50px"></span>
+                                    </td>
+                                    <td data-bind="text: $data[1].toFixed(2), style: { color: $root.calculate_metric_color($data[1])}"></td>
+                                </tr>
                             <!-- /ko-->
+                            </tbody>
+                        </table>
                         <!-- /ko-->
                     </div>
                 </div>

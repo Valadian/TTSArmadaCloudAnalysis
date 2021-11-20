@@ -8,6 +8,9 @@ function AnalysisModel(df){
     this.selectedCommanders = ko.observableArray([])
     this.selectedFactions = ko.observableArray([])
     this.selectedPlayers = ko.observableArray([])
+    this.ships_byname = ko.observable()
+    this.ships = ko.observableArray([])
+    this.selectedShips = ko.observable("")
     this.ranked = ko.observable(false)
     this.groupby = ko.observable("")
     this.selectedFactions.subscribe(function(selectedFactions){
@@ -77,9 +80,31 @@ function AnalysisModel(df){
             return []
         }
     },this)
+    this.shiptype_groupby = ko.computed(function(){
+        if (this.selectedShips()==""){
+            return []
+        }
+        return this.ships_byname()[this.selectedShips()].cols()
+    }, this)
     this.groupby_metrics = ko.computed(function(){
         if (this.groupby()==""){
             return []
+        } else if (this.groupby()=="shiptype"){
+            if (this.selectedShips()==""){
+                return []
+            }
+            var agg = groupby(this.df_filtered(),this.ships_byname()[this.selectedShips()].cols()).agg({'points':['count','mean']})
+            var countmean = agg.values
+            var names = agg.$index
+            return names.map(function(e, i){
+                pairing = JSON.parse(e)
+                nonzero_pairing_array = Object.entries(pairing).filter(([k,v]) => v>0)
+                description = nonzero_pairing_array.map((p)=>p[1]+" x "+p[0]).join(",\n")
+                if(description==""){
+                    description="all others"
+                }
+                return [description, countmean[i][1],countmean[i][0]];
+            }).sort((a, b) => b[2]- a[2]) //1 = score //2 = count
         } else {
             means = this.df_filtered().groupby([this.groupby()]).agg({'points':'mean'}).values
             count_values = this.df_filtered().groupby([this.groupby()]).agg({'points':'count'})['points_count'].values
@@ -88,6 +113,34 @@ function AnalysisModel(df){
             }).sort((a, b) => b[1]- a[1]);
         }
     },this)
+    this.groupby_metrics_max = ko.computed(function(){
+        if (this.groupby_metrics().length>0) {
+            return Math.max(...this.groupby_metrics().map(r => r[1]))
+        } else {
+            return 0
+        }
+    }, this)
+    this.groupby_metrics_min = ko.computed(function(){
+        if (this.groupby_metrics().length>0) {
+            return Math.min(...this.groupby_metrics().map(r => r[1]))
+        } else {
+            return 0
+        }
+    }, this)
+    this.groupby_metrics_mid = ko.computed(function(){
+        return (this.groupby_metrics_max()+this.groupby_metrics_min())/2
+    }, this)
+    this.calculate_metric_color = function(v){
+        var min = 4.5 //this.groupby_metrics_min()
+        var mid = 5.5 //this.groupby_metrics_mid()
+        var max = 6.5 //this.groupby_metrics_max()
+        if(min==mid){
+            return "rgb(255,255,0)"
+        }
+        var r =  parseInt(255*Math.max(0,Math.min(1,  1-(v-mid)/(max-mid) )))
+        var g =  parseInt(255*Math.max(0,Math.min(1,  (v-min)/(mid-min)   )))
+        return "rgb("+r+","+g+",0)"
+    }
     this.numberOfGames = ko.computed(function(){
         return this.df_filtered().$index.length
     },this)
@@ -152,7 +205,8 @@ function AnalysisModel(df){
             bargroupgap: 0.05, 
             // barmode: "overlay",
             title: "Tournament Points", 
-            xaxis: {title: "Points"}, 
+            xaxis: {title: "Points",fixedrange: true}, 
+            yaxis: {fixedrange: true},
             // yaxis: {title: "Probability"},
             plot_bgcolor:"transparent",
             paper_bgcolor:"transparent",
@@ -163,7 +217,7 @@ function AnalysisModel(df){
             legend: {
                 x: 0,
                 y: 1,
-                bgcolor: '#303030',
+                // bgcolor: '#303030',
             },
             margin: {
                 b: 40,
@@ -173,13 +227,113 @@ function AnalysisModel(df){
             }
         }
         var config = {
-            showEditInChartStudio: true,
+            // showEditInChartStudio: true,
+            'modeBarButtonsToRemove': ['sendDataToCloud']
         }
         Plotly.newPlot('plot_hist',[trace1,trace2],layout,config)
         //this.filtered()['points'].plot("plot_hist").hist()
     },this)
 }
+ship_filters = {
+    "SSD":["Star Dreadnought Command Prototype (220)","Star Dreadnought Assault Prototype (250)"],
+    "ISD":["Imperial I-class Star Destroyer (110)","Imperial II-class Star Destroyer (120)","Imperial Star Destroyer Kuat Refit (112)","Imperial Star Destroyer Cymoon 1 Refit (112)"],
+    "Onager":["Onager-class Testbed (96)","Onager-class Star Destroyer (110)"],
+    "Dictor":["Interdictor Combat Refit (93)","Interdictor Suppression Refit (90)"],
+    "VSD":["Victory I-class Star Destroyer (73)","Victory II-class Star Destroyer (85)"],
+    // "VSD w/titles":["Victory I-class Star Destroyer (73)","Victory II-class Star Destroyer (85)","Dominator (12)","Harrow (3)"],
+    "GSD":["Gladiator I-class Star Destroyer (56)","Gladiator II-class Star Destroyer (62)"],
+    // "GSD w/titles":["Gladiator I-class Star Destroyer (56)","Gladiator II-class Star Destroyer (62)","Demolisher (10)"],
+    "Quasar":["Quasar Fire I-class Cruiser-Carrier (54)","Quasar Fire II-class Cruiser-Carrier (61)"],
+    "Arq":["Arquitens-class Light Cruiser (54)","Arquitens-class Command Cruiser (59)"],
+    "Raider":["Raider I-class Corvette (44)","Raider II-class Corvette (48)"],
+    "Goz":["Gozanti-class Cruisers (23)","Gozanti-class Assault Carriers (28)"],
+    "Starhawk":["Starhawk-class Battleship Mark I (140)","Starhawk-class Battleship Mark II (150)"],
+    "MC80":["MC80 Command Cruiser (106)","MC80 Assault Cruiser (114)"],
+    "MC80L":["MC80 Star Cruiser (96)","MC80 Battle Cruiser (103)"],
+    "MC75":["MC75 Ordnance Cruiser (100)","MC75 Armored Cruiser (104)"],
+    "AF":["Assault Frigate Mark II B (72)","Assault Frigate Mark II A (81)"],
+    "MC30":["MC30c Torpedo Frigate (63)","MC30c Scout Frigate (69)"],
+    "Reb Pelta":["Modified Pelta-class Assault Ship (56)","Modified Pelta-class Command Ship (60)"],
+    "Neb":["Nebulon-B Support Refit (51)","Nebulon-B Escort Frigate (57)"],
+    "CR90":["CR90 Corvette B (39)","CR90 Corvette A (44)"],
+    "Hammer":["Hammerhead Torpedo Corvette (36)","Hammerhead Scout Corvette (41)"],
+    "GR-75":["GR-75 Medium Transports (18)","GR-75 Combat Retrofits (24)"],
+    "Venator":["Venator I-class Star Destroyer (90)","Venator II-class Star Destroyer (100)"],
+    "Acclamator":["Acclamator I-class Assault Ship (66)","Acclamator II-class Assault Ship (71)"],
+    "Rep Pelta":["Pelta-class Medical Frigate (49)","Pelta-class Transport Frigate (45)"],
+    "Consular":["Consular-class Armed Cruiser (37)","Consular-class Charger c70 (45)"],
+    "Providence":["Providence-class Carrier (105)","Providence-class Dreadnought (105)"],
+    "Recusant":["Recusant-class Light Destroyer (85)","Recusant-class Support Destroyer (90)"],
+    "Hardcell":["Hardcell-class Transport (47)","Hardcell-class Battle Refit (52)"],
 
+}
+
+groupby = function(df, keys){
+    results = {}
+    for(var key of keys){
+        results[key] = {}
+        results[key].unique = []
+        if (!(key in df)){
+            console.error("'"+key+"' not in dataframe!")
+        } else {
+            for(val of df[key].unique().values){
+                map = {}
+                map[key]=val
+                results[key].unique.push(map)
+            }
+        }
+    }
+    pairings = null
+    for(var key of keys){
+        if(pairings == null){
+            pairings = results[key].unique
+        } else {
+            pairings = pairings.flatMap(map => {
+                //return {...map, ...results[key].unique}
+                return results[key].unique.map(othermap => {return {...map, ...othermap};})
+            })
+        }
+    }
+    groupbyobj = {groups: [],df: df}
+    groupbyobj.agg = function(aggdict){
+        index = []
+        rows = []
+        for(var group of this.groups){
+            index.push(group.name)
+            row = {}
+            for(var key in aggdict){
+                if (!Array.isArray(aggdict[key])){
+                    aggdict[key] = [aggdict[key]]
+                }
+                for(var metric_func of aggdict[key]){
+                    var filtered = this.df.loc({rows:group.filter})
+                    var column = filtered[key]
+                    var metric = column[metric_func]()
+                    row[key+":"+metric_func]=metric
+                }
+            }
+            rows.push(row)
+        }
+        return new dfd.DataFrame(rows, {index:index})
+    }
+    
+    for(var pairing of pairings){
+        filter = df['points'].apply((x)=>true) //all true
+        for(var key in pairing){
+            filter = filter.and(df[key].eq(pairing[key]))
+        }
+        matches = df.loc({rows:filter})
+        if(matches.$index.length>0){
+            group = {}
+            group.name = JSON.stringify(pairing)
+            group.filter = filter
+            group.count = matches.$index.length
+            groupbyobj.groups.push(group)
+        }
+    }
+    return groupbyobj
+    // console.log(pairings)
+}
 
 dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
 .then(df => {
@@ -190,11 +344,27 @@ dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
     dfgames = dfgames.loc({rows:moralo.and(bossk).and(nocmdr)})
     dfgames['name'].apply(s => String(s), {inplace:true})//Doesn't work?
     koModel = new AnalysisModel(dfgames)
+    shipdict = {}
+    for(var ship in ship_filters){
+        shipdict[ship] = {
+            name: ko.observable(ship),
+            cols: ko.observableArray(ship_filters[ship])
+        }
+        koModel.ships.push(shipdict[ship])
+    }
+    koModel.ships_byname(shipdict)
     // koModel.numberOfGames(dfgames.$index.length)
     koModel.commanders(dfgames['commander'].unique().values.sort())
     koModel.factions(dfgames['faction'].unique().values.sort())
+    ko.options.deferUpdates = true;
+
+    document.getElementById("loading").classList.remove("d-flex")
+    document.getElementById("loading").classList.add("d-none")
+    document.getElementById("scores").classList.remove("invisible")
+    document.getElementById("statistics").classList.remove("invisible")
 
     ko.applyBindings(koModel);
+
     // var select = document.getElementById("commander")
     // select.add(new Option("<All Commanders>"))
     // for(var i in commanders.values){
