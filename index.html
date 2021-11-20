@@ -25,8 +25,11 @@
                 <div class="card mt-3">
                     <div class="card-header">
                         Filter
+                    </span>
+                    <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#filter-card-body" aria-expanded="true" aria-controls="collapseOne">
+                    </button>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body collapse show" id="filter-card-body">
                         <!-- <div class="row"> -->
                             Factions:
                             <select data-bind="options: factions, selectedOptions: selectedFactions" size="4" multiple="true" class="form-select" ></select>
@@ -62,33 +65,53 @@
                 <div class="card mt-3">
                     <div class="card-header">
                         Group By
+                        <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#groupby-card-body" aria-expanded="true" aria-controls="collapseOne">
+                        </button>
                     </div>
-                    <div class="card-body">
-                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                            <label class="btn btn-secondary active" data-bind="css: { active: groupby()==''}">
-                                <input type="radio" name="grouping" value="" data-bind="checked: groupby" autocomplete="off" checked> No Grouping
+                    <div class="card-body collapse show" id="groupby-card-body">
+                        <div class="btn-group btn-group-toggle d-none d-sm-block" data-toggle="buttons">
+                            <label class="btn btn-outline-secondary active" data-bind="css: { active: groupby()==''}">
+                                <input type="radio" name="grouping" value="" data-bind="checked: groupby" autocomplete="off" checked> None
                             </label>
-                            <label class="btn btn-secondary" data-bind="css: { active: groupby()=='faction'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='faction'}">
                                 <input type="radio" name="grouping" value="faction" data-bind="checked: groupby" autocomplete="off"> Faction
                             </label>
-                            <label class="btn btn-secondary" data-bind="css: { active: groupby()=='commander'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='commander'}">
                                 <input type="radio" name="grouping" value="commander" data-bind="checked: groupby" autocomplete="off"> Commander
                             </label>
-                            <label class="btn btn-secondary" data-bind="css: { active: groupby()=='name'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name'}">
                                 <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
                             </label>
                             <div class="btn-group" role="group">
-                                <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype'}">
-                                  Ship Type
+                                <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype'}">
+                                Ship Type
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1" data-bind="foreach: ships">
-                                  <li><a class="dropdown-item" data-bind="click: function(data, event) { $root.selectedShips(name()); $root.groupby('shiptype'); }, text:name"></a></li>
+                                <li><a class="dropdown-item" data-bind="click: function(data, event) { $root.selectedShips(name()); $root.groupby('shiptype'); }, text:name"></a></li>
                                 </ul>
-                              </div>
-                            <!-- <button class="btn btn-primary">No Grouping</button>
-                            <button class="btn btn-primary">Faction</button>
-                            <button class="btn btn-primary">Commander</button>
-                            <button class="btn btn-primary">Players</button> -->
+                            </div>
+                        </div>
+                        <div class="btn-group-vertical btn-group-toggle d-block d-sm-none" data-toggle="buttons">
+                            <label class="btn btn-outline-secondary active" data-bind="css: { active: groupby()==''}">
+                                <input type="radio" name="grouping" value="" data-bind="checked: groupby" autocomplete="off" checked> None
+                            </label>
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='faction'}">
+                                <input type="radio" name="grouping" value="faction" data-bind="checked: groupby" autocomplete="off"> Faction
+                            </label>
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='commander'}">
+                                <input type="radio" name="grouping" value="commander" data-bind="checked: groupby" autocomplete="off"> Commander
+                            </label>
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name'}">
+                                <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
+                            </label>
+                            <div class="btn-group" role="group">
+                                <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype'}">
+                                Ship Type
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1" data-bind="foreach: ships">
+                                <li><a class="dropdown-item" data-bind="click: function(data, event) { $root.selectedShips(name()); $root.groupby('shiptype'); }, text:name"></a></li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
