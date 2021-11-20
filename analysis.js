@@ -13,6 +13,13 @@ function AnalysisModel(df){
     this.selectedShips = ko.observable("")
     this.ranked = ko.observable(false)
     this.groupby = ko.observable("")
+    this.subgroup = ko.observable({})
+    this.subgroup_entries = ko.computed(function(){
+        return Object.entries(this.subgroup())
+    },this)
+    this.subgroup_desc = ko.computed(function(){
+        return this.subgroup_entries().map((p)=>p[1]+" x "+p[0]).join(", ")
+    },this)
     this.selectedFactions.subscribe(function(selectedFactions){
         if (selectedFactions.length==0){
             this.commanders(dfgames['commander'].unique().values.sort())
@@ -66,16 +73,27 @@ function AnalysisModel(df){
         }
         return filtered
     },this)
+    this.df_filtered_bysubgroup =  ko.computed(function(){
+        df = this.df_filtered()
+        if(Object.keys(this.subgroup()).length>0){
+            filter = df['points'].apply((x)=>true) //all true
+            for(var key in this.subgroup()){
+                filter = filter.and(df[key].eq(this.subgroup()[key]))
+            }
+            df = df.loc({rows:filter})
+        }
+        return df
+    },this)
     this.df_first =  ko.computed(function(){
-        if(this.df_filtered().$index.length>0){
-            return this.df_filtered().loc({rows:this.df_filtered()['first'].eq("True")})
+        if(this.df_filtered_bysubgroup().$index.length>0){
+            return this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()['first'].eq("True")})
         } else{
             return []
         }
     },this)
     this.df_second =  ko.computed(function(){
-        if(this.df_filtered().$index.length>0){
-            return this.df_filtered().loc({rows:this.df_filtered()['first'].ne("True")})
+        if(this.df_filtered_bysubgroup().$index.length>0){
+            return this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()['first'].ne("True")})
         } else{
             return []
         }
@@ -93,7 +111,7 @@ function AnalysisModel(df){
             if (this.selectedShips()==""){
                 return []
             }
-            var agg = groupby(this.df_filtered(),this.ships_byname()[this.selectedShips()].cols()).agg({'points':['count','mean']})
+            var agg = df_groupby(this.df_filtered(),this.ships_byname()[this.selectedShips()].cols()).agg({'points':['count','mean']})
             var countmean = agg.values
             var names = agg.$index
             return names.map(function(e, i){
@@ -103,13 +121,15 @@ function AnalysisModel(df){
                 if(description==""){
                     description="all others"
                 }
-                return [description, countmean[i][1],countmean[i][0]];
+                return [description, countmean[i][1],countmean[i][0],pairing];
             }).sort((a, b) => b[2]- a[2]) //1 = score //2 = count
         } else {
             means = this.df_filtered().groupby([this.groupby()]).agg({'points':'mean'}).values
             count_values = this.df_filtered().groupby([this.groupby()]).agg({'points':'count'})['points_count'].values
             return means.map(function(e, i) {
-                return [e[0], e[1], count_values[i]];
+                var pairing = {}
+                pairing[e[0]] = 1
+                return [e[0], e[1], count_values[i], pairing];
             }).sort((a, b) => b[1]- a[1]);
         }
     },this)
@@ -238,6 +258,7 @@ ship_filters = {
     "SSD":["Star Dreadnought Command Prototype (220)","Star Dreadnought Assault Prototype (250)"],
     "ISD":["Imperial I-class Star Destroyer (110)","Imperial II-class Star Destroyer (120)","Imperial Star Destroyer Kuat Refit (112)","Imperial Star Destroyer Cymoon 1 Refit (112)"],
     "Onager":["Onager-class Testbed (96)","Onager-class Star Destroyer (110)"],
+    //"Onager w/titles":["Onager-class Testbed (96)","Onager-class Star Destroyer (110)","Cataclysm (5)"],
     "Dictor":["Interdictor Combat Refit (93)","Interdictor Suppression Refit (90)"],
     "VSD":["Victory I-class Star Destroyer (73)","Victory II-class Star Destroyer (85)"],
     // "VSD w/titles":["Victory I-class Star Destroyer (73)","Victory II-class Star Destroyer (85)","Dominator (12)","Harrow (3)"],
@@ -264,11 +285,12 @@ ship_filters = {
     "Consular":["Consular-class Armed Cruiser (37)","Consular-class Charger c70 (45)"],
     "Providence":["Providence-class Carrier (105)","Providence-class Dreadnought (105)"],
     "Recusant":["Recusant-class Light Destroyer (85)","Recusant-class Support Destroyer (90)"],
+    "Munificent":["Munificent-class Comms Frigate (70)","Munificent-class Star Frigate (73)"],
     "Hardcell":["Hardcell-class Transport (47)","Hardcell-class Battle Refit (52)"],
 
 }
 
-groupby = function(df, keys){
+df_groupby = function(df, keys){
     results = {}
     for(var key of keys){
         results[key] = {}

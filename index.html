@@ -99,9 +99,28 @@
                 </div>
                 <div id="scores" class="card mt-3 invisible">
                     <div class="card-header">
+                        <span>
                         Scores
+                        <!-- ko foreach: subgroup_entries-->
+                        <!-- ko if: $data[1]==0-->
+                        <span class="badge rounded-pill bg-danger" data-bind="text: $data[0]"></span>
+                        <!-- /ko -->
+                        <!-- ko if: $data[1]==1-->
+                        <span class="badge rounded-pill bg-success" data-bind="text: $data[0]"></span>
+                        <!-- /ko -->
+                        <!-- ko if: $data[1]>1-->
+                        <span class="badge rounded-pill bg-primary" data-bind="text: $data[0]+' x '+$data[1]"></span>
+                        <!-- /ko -->
+                        <!-- /ko-->
+                        
+                        <!-- ko if: subgroup_entries().length > 0-->
+                        <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => subgroup({})"></i>
+                        <!-- /ko -->
+                        </span>
+                        <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#plot-card-body" aria-expanded="true" aria-controls="collapseOne">
+                        </button>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body collapse show" id="plot-card-body">
                         <div id="plot_hist"></div>
                     </div>
                 </div>
@@ -126,6 +145,7 @@
                         <table class="table table-dark table-striped">
                             <thead>
                                 <tr>
+                                    <th></th>
                                     <th scope="col">Group:</th>
                                     <th scope="col" class="text-end">Number of Games:</th>
                                     <th scope="col">Average Points:</th>
@@ -134,6 +154,11 @@
                             <tbody>
                             <!-- ko foreach: groupby_metrics-->
                                 <tr>
+                                    <td>
+                                        <!-- ko if: $root.groupby()=='shiptype'-->
+                                        <button class="btn btn-secondary" data-bind="click: () =>$root.subgroup($data[3])"><i class="bi bi-bar-chart-line-fill"></i></button>          
+                                        <!-- /ko -->
+                                    </td>
                                     <td>
                                         <span data-bind="text: $data[0]" style="white-space:pre-wrap; word-wrap:break-word"></span>
                                     </td>
