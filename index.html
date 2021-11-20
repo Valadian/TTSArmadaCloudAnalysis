@@ -20,6 +20,10 @@
 <body>
     <main role="main" class="container-fluid">
         <h1>TTS Cloud Game Analyzer</h1>
+        <div id="loading" class="d-flex align-items-center mt-3" data-bind>
+            <strong>Loading...</strong>
+            <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+        </div>
         <div class="row mb-10">
             <div class="col-12 col-lg-3">
                 <div class="card mt-3">
@@ -69,7 +73,7 @@
                         </button>
                     </div>
                     <div class="card-body collapse show" id="groupby-card-body">
-                        <div class="btn-group btn-group-toggle d-none d-sm-block" data-toggle="buttons">
+                        <div class="btn-group btn-group-toggle d-none d-sm-flex" data-toggle="buttons">
                             <label class="btn btn-outline-secondary active" data-bind="css: { active: groupby()==''}">
                                 <input type="radio" name="grouping" value="" data-bind="checked: groupby" autocomplete="off" checked> None
                             </label>
@@ -116,10 +120,6 @@
                     </div>
                 </div>
                 
-                <div id="loading" class="d-flex align-items-center mt-3" data-bind>
-                    <strong>Loading...</strong>
-                    <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
-                </div>
                 <div id="scores" class="card mt-3 invisible">
                     <div class="card-header">
                         <span>
@@ -171,12 +171,12 @@
                                     <th></th>
                                     <th scope="col">Group:</th>
                                     <th scope="col" class="text-end">
-                                        <span class="d-none d-sm-block">Number of Games:</span>
-                                        <span class="d-block d-sm-none">#:</span>
+                                        <span class="d-none d-md-block">Number of Games:</span>
+                                        <span class="d-block d-md-none">#:</span>
                                     </th>
                                     <th scope="col">
-                                        <span class="d-none d-sm-block">Average Points:</span>
-                                        <span class="d-block d-sm-none">Pts:</span></th>
+                                        <span class="d-none d-md-block">Average Points:</span>
+                                        <span class="d-block d-md-none">Pts:</span></th>
                                 </tr>
                             </thead>
                             <tbody>
