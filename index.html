@@ -44,33 +44,40 @@
                     </button>
                     </div>
                     <div class="card-body collapse show" id="filter-card-body">
-                        <!-- <div class="row"> -->
-                            Factions:
-                            <select data-bind="options: factions, selectedOptions: selectedFactions" size="4" multiple="true" class="form-select" ></select>
-                        <!-- </div>
-                        <div class="row"> -->
-                            <hr>
-                            Commanders:
-                            <select data-bind="options: commanders, selectedOptions: selectedCommanders" size="10" multiple="true" class="form-select" ></select>
-                        <!-- </div>
-                        <div class="row"> -->
-                            <hr>
-                            Players:
-                            <select data-bind="options: players, selectedOptions: selectedPlayers" size="10" multiple="true" class="form-select" ></select>
-                        <!-- </div>
-                        <div class="row"> -->
-                            <hr>
-                            Ranked:
-                            <!-- <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                                <label class="btn btn-primary active" data-bind="css: { active: ranked()}">
-                                    <input type="radio" name="ranked" value="true" data-bind="checked: ranked" autocomplete="off" checked> Ranked
-                                </label>
-                                <label class="btn btn-primary" data-bind="css: { active: !ranked()}">
-                                    <input type="radio" name="ranked" value="false" data-bind="checked: ranked" autocomplete="off"> Casual
-                                </label>
-                            </div> -->
-                            <input type="checkbox" data-bind="checked: ranked" class="form-checkbox" ></select>
-                        <!-- </div> -->
+                        Factions:
+                        <!-- ko if: selectedFactions().length > 0-->
+                        <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedFactions([])"></i>
+                        <!-- /ko -->
+                        <select data-bind="options: factions, selectedOptions: selectedFactions" size="4" multiple="true" class="form-select" ></select>
+                        <hr>
+                        Commanders:
+                        <!-- ko if: selectedCommanders().length > 0-->
+                        <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedCommanders([])"></i>
+                        <!-- /ko -->
+                        <select data-bind="options: commanders, selectedOptions: selectedCommanders" size="10" multiple="true" class="form-select" ></select>
+                        <hr>
+                        Tournament:
+                        <!-- ko if: selectedTournamentCodes().length > 0-->
+                        <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedTournamentCodes([])"></i>
+                        <!-- /ko -->
+                        <select data-bind="options: tournamentCodes, selectedOptions: selectedTournamentCodes" size="4" multiple="true" class="form-select" ></select>
+                        <hr>
+                        Players:
+                        <!-- ko if: selectedPlayers().length > 0-->
+                        <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedPlayers([])"></i>
+                        <!-- /ko -->
+                        <select data-bind="options: players, selectedOptions: selectedPlayers" size="4" multiple="true" class="form-select" ></select>
+                        <hr>
+                        Ranked:<br>
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-outline-secondary active" data-bind="css: { active: String(ranked()) == '' }">
+                                <input type="radio" name="ranked" value="" data-bind="checked: ranked" autocomplete="off" checked> All
+                            </label>
+                            <label class="btn btn-outline-warning" data-bind="css: { active: String(ranked()) == 'true' }">
+                                <input type="radio" name="ranked" value="true" data-bind="checked: ranked" autocomplete="off" > Ranked
+                            </label>
+                        </div>
+                        <!-- <input type="checkbox" data-bind="checked: ranked" class="form-checkbox" ></select> -->
                     </div>
                 </div>
                 
@@ -168,7 +175,7 @@
                                 Number of Games: <span data-bind="text: numberOfGames"></span>
                             </div>
                             <div class="col-6">
-                                Mean MoV: <span data-bind="text: meanMoV().toFixed(2)"></span>
+                                Mean Points: <span data-bind="text: meanPoints().toFixed(2)"></span>
                             </div>
                         </div>
                         <!-- /ko-->

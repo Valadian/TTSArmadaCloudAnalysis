@@ -5,13 +5,15 @@ function AnalysisModel(df){
     this.df = ko.observable(df)
     this.commanders = ko.observableArray([])
     this.factions = ko.observableArray([])
+    this.tournamentCodes = ko.observableArray([])
     this.selectedCommanders = ko.observableArray([])
     this.selectedFactions = ko.observableArray([])
     this.selectedPlayers = ko.observableArray([])
+    this.selectedTournamentCodes = ko.observableArray([])
     this.ships_byname = ko.observable()
     this.ships = ko.observableArray([])
     this.selectedShips = ko.observable("")
-    this.ranked = ko.observable(false)
+    this.ranked = ko.observable("")
     this.groupby = ko.observable("")
     this.subgroup = ko.observable({})
     this.subgroup_entries = ko.computed(function(){
@@ -55,8 +57,20 @@ function AnalysisModel(df){
         }
         return filtered
     },this)
-    this.df_filtered_byplayer = ko.computed(function(){
+    this.df_filtered_bytournament = ko.computed(function(){
         filtered = this.df_filtered_bycmdr()
+        if (this.selectedTournamentCodes().length>0){
+            filter = new dfd.Series(dfgames.values.map(r=>false))
+            // filter = filtered['tournamentCode'].isna()
+            for( var i in this.selectedTournamentCodes()){
+                filter = filter.or(new dfd.Series(dfgames.loc({columns:['tournamentCode']}).values.map(r=>r[0]==this.selectedTournamentCodes()[i])))
+            }
+            filtered = filtered.loc({rows:filter})
+        }
+        return filtered
+    },this)
+    this.df_filtered_byplayer = ko.computed(function(){
+        filtered = this.df_filtered_bytournament()
         if (this.selectedPlayers().length>0){
             filter = filtered['name'].isna()
             for( var i in this.selectedPlayers()){
@@ -167,6 +181,13 @@ function AnalysisModel(df){
     this.meanMoV = ko.computed(function(){
         if(this.df_filtered().$index.length>0){
             return this.df_filtered()['MoV'].mean()
+        } else {
+            return 0
+        }
+    },this)
+    this.meanPoints = ko.computed(function(){
+        if(this.df_filtered().$index.length>0){
+            return this.df_filtered()['points'].mean()
         } else {
             return 0
         }
@@ -378,6 +399,7 @@ dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
     // koModel.numberOfGames(dfgames.$index.length)
     koModel.commanders(dfgames['commander'].unique().values.sort())
     koModel.factions(dfgames['faction'].unique().values.sort())
+    koModel.tournamentCodes(dfgames.loc({columns:['tournamentCode']}).values.filter((v, i, a) => v[0]!=null && v[0].length<25).map(r=>String(r[0])).filter((v, i, a) => a.indexOf(v) === i).sort())
     ko.options.deferUpdates = true;
 
     document.getElementById("loading").classList.remove("d-flex")
