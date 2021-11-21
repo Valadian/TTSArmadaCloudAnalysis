@@ -206,7 +206,7 @@
                                 <tr>
                                     <td>
                                         <!-- ko if: $root.groupby()=='shiptype'-->
-                                        <button class="btn btn-secondary" data-bind="click: () =>$root.subgroup($data[3])"><i class="bi bi-bar-chart-line-fill"></i></button>          
+                                        <button class="btn btn-secondary" data-bind="click: () =>$root.subgroup($data[3]),css:{'btn-secondary':JSON.stringify($data[3]) != JSON.stringify($root.subgroup()), 'btn-warning':JSON.stringify($data[3])==JSON.stringify($root.subgroup())}"><i class="bi bi-bar-chart-line-fill"></i></button>          
                                         <!-- /ko -->
                                     </td>
                                     <td>

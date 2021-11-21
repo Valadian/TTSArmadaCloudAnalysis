@@ -250,11 +250,14 @@ function AnalysisModel(df){
         var count = this.df_filtered_bysubgroup().$index.length
         return this.cardmetrics().filter(r => (r[2]>=(1-this.cardmetrics_threshold())*count))
     },this)
+    this.cards = ko.computed(function(){
+        return this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
+    },this)
     this.common_cards = function(){
         document.getElementById("card-metrics-loading").classList.remove("d-none")
         document.getElementById("calc-card-metrics").classList.add("d-none")
         setTimeout(() => {
-            cards = this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
+            cards = this.cards() //this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
             matches = cards.map(c => this.df_filtered_bysubgroup()[c].gt(0).sum())
             scores = cards.map(c => {
                 rows = this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()[c].gt(0)})
