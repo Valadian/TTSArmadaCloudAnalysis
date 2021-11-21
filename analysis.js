@@ -17,6 +17,7 @@ function AnalysisModel(df){
     this.groupby = ko.observable("")
     this.subgroup = ko.observable({})
     this.cardmetrics = ko.observableArray([])
+    this.nemesismetrics = ko.observableArray([])
     this.subgroup_entries = ko.computed(function(){
         return Object.entries(this.subgroup())
     },this)
@@ -176,7 +177,20 @@ function AnalysisModel(df){
                 return 0
             }
         })
-        return cards.map((e, i) => [e, scores[i],matches[i]]).sort((a,b)=>b[2]-a[2])
+        return cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).sort((a,b)=>b[2]-a[2])
+    }
+    this.nemesis_cards = function(){
+        cards = this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:"))
+        matches = cards.map(c => this.df_filtered_bysubgroup()[c].gt(0).sum())
+        scores = cards.map(c => {
+            rows = this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()[c].gt(0)})
+            if(rows.$index.length>0){
+                return rows['points'].mean()
+            } else {
+                return 0
+            }
+        })
+        return cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).sort((a,b)=>a[1]-b[1])
     }
     this.calculate_metric_color = function(v){
         var min = 4.5 //this.groupby_metrics_min()
@@ -421,6 +435,7 @@ dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
     document.getElementById("scores").classList.remove("invisible")
     document.getElementById("statistics").classList.remove("invisible")
     document.getElementById("cardmetrics").classList.remove("invisible")
+    document.getElementById("nemesis").classList.remove("invisible")
 
     ko.applyBindings(koModel);
 
