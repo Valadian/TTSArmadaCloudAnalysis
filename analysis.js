@@ -16,6 +16,7 @@ function AnalysisModel(df){
     this.ranked = ko.observable("")
     this.groupby = ko.observable("")
     this.subgroup = ko.observable({})
+    this.cardmetrics = ko.observableArray([])
     this.subgroup_entries = ko.computed(function(){
         return Object.entries(this.subgroup())
     },this)
@@ -164,6 +165,19 @@ function AnalysisModel(df){
     this.groupby_metrics_mid = ko.computed(function(){
         return (this.groupby_metrics_max()+this.groupby_metrics_min())/2
     }, this)
+    this.common_cards = function(){
+        cards = this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
+        matches = cards.map(c => this.df_filtered_bysubgroup()[c].gt(0).sum())
+        scores = cards.map(c => {
+            rows = this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()[c].gt(0)})
+            if(rows.$index.length>0){
+                return rows['points'].mean()
+            } else {
+                return 0
+            }
+        })
+        return cards.map((e, i) => [e, scores[i],matches[i]]).sort((a,b)=>b[2]-a[2])
+    }
     this.calculate_metric_color = function(v){
         var min = 4.5 //this.groupby_metrics_min()
         var mid = 5.5 //this.groupby_metrics_mid()
@@ -406,6 +420,7 @@ dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
     document.getElementById("loading").classList.add("d-none")
     document.getElementById("scores").classList.remove("invisible")
     document.getElementById("statistics").classList.remove("invisible")
+    document.getElementById("cardmetrics").classList.remove("invisible")
 
     ko.applyBindings(koModel);
 
