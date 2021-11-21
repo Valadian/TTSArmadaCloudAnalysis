@@ -29,7 +29,12 @@
 
 <body>
     <main role="main" class="container-fluid">
-        <h1>TTS Cloud Game Analyzer</h1>
+        <div class="d-flex justify-content-between">
+            <h1><a data-bind="attr:{href:homeurl}">TTS Cloud Game Analyzer</a></h1>
+            <input  style="position:absolute; left:-9999px;top:0" id="url" data-bind="value:url">
+            <button class="btn btn-outline-success" data-bind="click: copyurl"><i class="bi bi-link"></i> Copy Url</button>
+        </div>
+        
         <div id="loading" class="d-flex align-items-center mt-3" data-bind>
             <strong>Loading...</strong>
             <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
@@ -230,7 +235,14 @@
                         <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#cardmetrics-card-body" aria-expanded="true" aria-controls="collapseOne">
                     </div>
                     <div class="card-body collapse show" id="cardmetrics-card-body">
-                        <button class="btn btn-success mb-3" data-bind="click: () => cardmetrics(common_cards())">Manually Calculate</button>
+                        <button class="btn btn-dark mb-3 disabled d-none" id="card-metrics-loading" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Loading...
+                        </button>
+                        <button class="btn btn-dark mb-3 " id="calc-card-metrics" data-bind="click: () => common_cards()">
+                            Manually Calculate 
+                        </button>
+                        <input type="range" data-bind='value: cardmetrics_threshold' min="0" max="1" step="0.05" title="Min % Filter">
                         <table class="table table-dark table-striped">
                             <thead>
                                 <tr>
@@ -245,7 +257,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            <!-- ko foreach: cardmetrics-->
+                            <!-- ko foreach: cardmetrics_filtered-->
                                 <tr>
                                     <td>
                                         <span data-bind="text: $data[0]" style="white-space:pre-wrap; word-wrap:break-word"></span>
@@ -272,7 +284,12 @@
                         <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#nemesis-card-body" aria-expanded="true" aria-controls="collapseOne">
                     </div>
                     <div class="card-body collapse show" id="nemesis-card-body">
-                        <button class="btn btn-success mb-3" data-bind="click: () => nemesismetrics(nemesis_cards())">Manually Calculate</button>
+                        <button class="btn btn-dark mb-3 disabled d-none" id="nemesis-loading" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Loading...
+                        </button>
+                        <button class="btn btn-dark mb-3" id="calc-nemesis" data-bind="click: () => nemesis_cards()">Manually Calculate</button>
+                        <input type="range" data-bind='value: nemesis_threshold' min="0" max="100" step="5">
                         <table class="table table-dark table-striped">
                             <thead>
                                 <tr>
@@ -287,7 +304,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            <!-- ko foreach: nemesismetrics-->
+                            <!-- ko foreach: nemesismetrics_filtered-->
                                 <tr>
                                     <td>
                                         <span data-bind="text: $data[0]" style="white-space:pre-wrap; word-wrap:break-word"></span>

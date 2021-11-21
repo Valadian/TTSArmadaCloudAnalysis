@@ -16,8 +16,86 @@ function AnalysisModel(df){
     this.ranked = ko.observable("")
     this.groupby = ko.observable("")
     this.subgroup = ko.observable({})
-    this.cardmetrics = ko.observableArray([])
-    this.nemesismetrics = ko.observableArray([])
+    this.homeurl = ko.computed(function(){
+        return location.protocol + '//' + location.host + location.pathname
+    },this)
+    this.url = ko.computed(function(){
+        let data = {
+            selectedFactions:this.selectedFactions(),
+            selectedCommanders:this.selectedCommanders(),
+            selectedTournamentCodes:this.selectedTournamentCodes(),
+            selectedPlayers:this.selectedPlayers(),
+            ranked:this.ranked(),
+            groupby:this.groupby(),
+            selectedShips:this.selectedShips(),
+            subgroup:this.subgroup()
+        }
+        return location.protocol + '//' + location.host + location.pathname + "?data="+btoa(JSON.stringify(data));
+    },this)
+    this.cursorFocus = function(elem) {
+        var x, y;
+        // More sources for scroll x, y offset.
+        if (typeof(window.pageXOffset) !== 'undefined') {
+            x = window.pageXOffset;
+            y = window.pageYOffset;
+        } else if (typeof(window.scrollX) !== 'undefined') {
+            x = window.scrollX;
+            y = window.scrollY;
+        } else if (document.documentElement && typeof(document.documentElement.scrollLeft) !== 'undefined') {
+            x = document.documentElement.scrollLeft;
+            y = document.documentElement.scrollTop;
+        } else {
+            x = document.body.scrollLeft;
+            y = document.body.scrollTop;
+        }
+      
+        elem.focus();
+      
+        window.scrollTo(x, y);
+        if (typeof x !== 'undefined') {
+            // In some cases IE9 does not seem to catch instant scrollTo request.
+            setTimeout(function() { window.scrollTo(x, y); }, 10);
+        }
+    }
+    this.copyurl = function(){
+        if(typeof(event)=="undefined" || typeof(event.toElement)=="undefined"){ //|| typeof(element.value)=="undefined"
+            return;
+        }
+        target = document.getElementById('url')
+        if(typeof(target)=="undefined" || typeof(target.value)=="undefined"){
+            return;
+        }
+        this.cursorFocus(target)
+        target.setSelectionRange(0, target.value.length);
+
+        // copy the selection
+        var succeed;
+        try {
+              succeed = document.execCommand("copy");
+              if(succeed){
+                //   $.notify({
+                //     // options
+                //     message: 'Link Copied to Clipboard',
+                //     url: self.shareLink(),
+                //     target: '_blank'
+                //   },{
+                //     // settings
+                //     type: 'success',
+	            //     delay: 3000,
+                //     animate: {
+                //        enter: 'animated fadeInDown',
+                //        exit: 'animated fadeOutUp'
+                //     },
+                //     placement: {
+                //         from: "top",
+                //         align: "center"
+                //     },
+                //   });
+              }
+        } catch(e) {
+            succeed = false;
+        }
+    }
     this.subgroup_entries = ko.computed(function(){
         return Object.entries(this.subgroup())
     },this)
@@ -166,31 +244,58 @@ function AnalysisModel(df){
     this.groupby_metrics_mid = ko.computed(function(){
         return (this.groupby_metrics_max()+this.groupby_metrics_min())/2
     }, this)
+    this.cardmetrics = ko.observableArray([])
+    this.cardmetrics_threshold = ko.observable(0.5)
+    this.cardmetrics_filtered = ko.computed(function(){
+        var count = this.df_filtered_bysubgroup().$index.length
+        return this.cardmetrics().filter(r => (r[2]>=(1-this.cardmetrics_threshold())*count))
+    },this)
     this.common_cards = function(){
-        cards = this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
-        matches = cards.map(c => this.df_filtered_bysubgroup()[c].gt(0).sum())
-        scores = cards.map(c => {
-            rows = this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()[c].gt(0)})
-            if(rows.$index.length>0){
-                return rows['points'].mean()
-            } else {
-                return 0
-            }
-        })
-        return cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).sort((a,b)=>b[2]-a[2])
-    }
+        document.getElementById("card-metrics-loading").classList.remove("d-none")
+        document.getElementById("calc-card-metrics").classList.add("d-none")
+        setTimeout(() => {
+            cards = this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
+            matches = cards.map(c => this.df_filtered_bysubgroup()[c].gt(0).sum())
+            scores = cards.map(c => {
+                rows = this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()[c].gt(0)})
+                if(rows.$index.length>0){
+                    return rows['points'].mean()
+                } else {
+                    return 0
+                }
+            })
+            cards = cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).sort((a,b)=>b[2]-a[2])
+            //this.cardmetrics(cards)
+            document.getElementById("card-metrics-loading").classList.add("d-none")
+            document.getElementById("calc-card-metrics").classList.remove("d-none")
+            this.cardmetrics(cards)
+        }, 100)
+    }//,this)
+    this.nemesismetrics = ko.observableArray([])
+    this.nemesis_threshold = ko.observable(90)
+    this.nemesismetrics_filtered = ko.computed(function(){
+        var mean = this.df_filtered_bysubgroup()['points'].mean()
+        return this.nemesismetrics().filter(r => (r[2]>=(100-this.nemesis_threshold())) && (+r[1]<+mean))
+    },this)
     this.nemesis_cards = function(){
-        cards = this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:"))
-        matches = cards.map(c => this.df_filtered_bysubgroup()[c].gt(0).sum())
-        scores = cards.map(c => {
-            rows = this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()[c].gt(0)})
-            if(rows.$index.length>0){
-                return rows['points'].mean()
-            } else {
-                return 0
-            }
-        })
-        return cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).sort((a,b)=>a[1]-b[1])
+        document.getElementById("nemesis-loading").classList.remove("d-none")
+        document.getElementById("calc-nemesis").classList.add("d-none")
+        setTimeout(() => {
+            cards = this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:"))
+            matches = cards.map(c => this.df_filtered_bysubgroup()[c].gt(0).sum())
+            scores = cards.map(c => {
+                rows = this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()[c].gt(0)})
+                if(rows.$index.length>0){
+                    return rows['points'].mean()
+                } else {
+                    return 0
+                }
+            })
+            cards = cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).sort((a,b)=>a[1]-b[1])
+            document.getElementById("nemesis-loading").classList.add("d-none")
+            document.getElementById("calc-nemesis").classList.remove("d-none")
+            this.nemesismetrics(cards)
+        }, 100)
     }
     this.calculate_metric_color = function(v){
         var min = 4.5 //this.groupby_metrics_min()
@@ -405,6 +510,7 @@ df_groupby = function(df, keys){
     return groupbyobj
     // console.log(pairings)
 }
+ko.options.deferUpdates = true;
 
 dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
 .then(df => {
@@ -428,7 +534,7 @@ dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
     koModel.commanders(dfgames['commander'].unique().values.sort())
     koModel.factions(dfgames['faction'].unique().values.sort())
     koModel.tournamentCodes(dfgames.loc({columns:['tournamentCode']}).values.filter((v, i, a) => v[0]!=null && v[0].length<25).map(r=>String(r[0])).filter((v, i, a) => a.indexOf(v) === i).sort())
-    ko.options.deferUpdates = true;
+
 
     document.getElementById("loading").classList.remove("d-flex")
     document.getElementById("loading").classList.add("d-none")
@@ -437,7 +543,27 @@ dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
     document.getElementById("cardmetrics").classList.remove("invisible")
     document.getElementById("nemesis").classList.remove("invisible")
 
+    
     ko.applyBindings(koModel);
+
+    setTimeout(function() {
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        let data64 = urlParams.get('data')
+        if(data64){
+            let datastr = atob(data64)
+            let data = JSON.parse(datastr)
+
+            koModel['selectedFactions'](data['selectedFactions'])
+
+            setTimeout(function() {
+                for(var key of Object.keys(data).slice(1)){
+                    koModel[key](data[key])
+                }
+            },100)
+        }
+    },100)
+
 
     // var select = document.getElementById("commander")
     // select.add(new Option("<All Commanders>"))
