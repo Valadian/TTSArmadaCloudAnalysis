@@ -637,7 +637,9 @@ dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
             let datastr = atob(data64)
             let data = JSON.parse(datastr)
 
-            koModel['selectedFactions'](data['selectedFactions'])
+            if('selectedFactions' in data){
+                koModel['selectedFactions'](data['selectedFactions'])
+            }
 
             setTimeout(function() {
                 for(var key of Object.keys(data).slice(1)){
