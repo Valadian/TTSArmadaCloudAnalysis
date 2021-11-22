@@ -10,6 +10,7 @@ function AnalysisModel(df){
     this.selectedFactions = ko.observableArray([])
     this.selectedPlayers = ko.observableArray([])
     this.selectedTournamentCodes = ko.observableArray([])
+    this.selectedCards = ko.observableArray([])
     this.ships_byname = ko.observable()
     this.ships = ko.observableArray([])
     this.selectedShips = ko.observable("")
@@ -161,8 +162,19 @@ function AnalysisModel(df){
         }
         return filtered
     },this)
-    this.df_filtered =  ko.computed(function(){
+    this.df_filtered_bycard = ko.computed(function(){
         filtered = this.df_filtered_byplayer()
+        if (this.selectedCards().length>0){
+            filter = filtered['name'].isna()
+            for( var card of this.selectedCards()){
+                filter = filter.or(filtered[card].gt(0))
+            }
+            filtered = filtered.loc({rows:filter})
+        }
+        return filtered
+    },this)
+    this.df_filtered =  ko.computed(function(){
+        filtered = this.df_filtered_bycard()
         if(this.ranked()){
             if (filtered.$index.length>0){
                 filtered = filtered.loc({rows:filtered['ranked'].eq("True")})
@@ -257,7 +269,7 @@ function AnalysisModel(df){
         return this.cardmetrics().filter(r => (r[2]>=(1-this.cardmetrics_threshold())*count))
     },this)
     this.cards = ko.computed(function(){
-        return this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
+        return this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3)).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
     },this)
     this.common_cards = function(){
         document.getElementById("card-metrics-loading").classList.remove("d-none")

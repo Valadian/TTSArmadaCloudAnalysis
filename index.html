@@ -97,6 +97,15 @@
                             <select data-bind="options: players, selectedOptions: selectedPlayers" size="10" multiple="true" class="form-select" ></select>
                         </div>
                         
+                        <h4>
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#cardSelection">
+                                <i class="bi bi-collection"></i> &nbsp;Cards:
+                            </button>
+                        </h4>
+                        <div id="cardSelection" class="accordion-collapse collapse mb-3">
+                            <select data-bind="options: cards, selectedOptions: selectedCards" size="10" multiple="true" class="form-select" ></select>
+                        </div>
+                        
                         <div class="btn-group btn-group-toggle mt-3" data-toggle="buttons">
                             <label class="btn btn-outline-secondary active" data-bind="css: { active: String(ranked()) == '' }">
                                 <input type="radio" name="ranked" value="" data-bind="checked: ranked" autocomplete="off" checked> All
@@ -191,6 +200,12 @@
                         <span class="badge rounded-pill bg-dark">
                             <span data-bind="text: selectedPlayers().join(', ')"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => selectedPlayers([])"></i>
+                        </span>
+                        <!-- /ko -->
+                        <!-- ko if: selectedCards().length>0-->
+                        <span class="badge rounded-pill bg-secondary">
+                            <span data-bind="text: selectedCards().join(', ')"></span>
+                            <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => selectedCards([])"></i>
                         </span>
                         <!-- /ko -->
                         
