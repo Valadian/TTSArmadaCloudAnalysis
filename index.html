@@ -103,7 +103,7 @@
                             </button>
                         </h4>
                         <div id="cardSelection" class="accordion-collapse collapse mb-3">
-                            <select data-bind="options: cards, selectedOptions: selectedCards" size="10" multiple="true" class="form-select" ></select>
+                            <select data-bind="options: all_cards, selectedOptions: selectedCards" size="10" multiple="true" class="form-select" ></select>
                         </div>
                         
                         <div class="btn-group btn-group-toggle mt-3" data-toggle="buttons">
@@ -241,6 +241,11 @@
                     </div>
                     <div class="card-body collapse show" id="plot-card-body">
                         <div id="plot_hist"></div>
+                        <!-- ko if: df_filtered_bysubgroup().$index.length==0-->
+                        <div class="position-absolute top-50 start-50 translate-middle w-100 d-flex justify-content-center bg-dark">
+                            <h3><b class="text-danger">No Matches for Selected Filter!</b></h3>
+                        </div>
+                        <!-- /ko-->
                     </div>
                 </div>
                 <div id="statistics" class="card mt-3 invisible">

@@ -26,6 +26,7 @@ function AnalysisModel(df){
             selectedCommanders:this.selectedCommanders(),
             selectedTournamentCodes:this.selectedTournamentCodes(),
             selectedPlayers:this.selectedPlayers(),
+            selectedCards:this.selectedCards(),
             ranked:this.ranked(),
             groupby:this.groupby(),
             selectedShips:this.selectedShips(),
@@ -184,7 +185,7 @@ function AnalysisModel(df){
     },this)
     this.df_filtered_bysubgroup =  ko.computed(function(){
         df = this.df_filtered()
-        if(Object.keys(this.subgroup()).length>0){
+        if(df.$index.length>0 && Object.keys(this.subgroup()).length>0){
             filter = df['points'].apply((x)=>true) //all true
             for(var key in this.subgroup()){
                 filter = filter.and(df[key].eq(this.subgroup()[key]))
@@ -267,6 +268,9 @@ function AnalysisModel(df){
     this.cardmetrics_filtered = ko.computed(function(){
         var count = this.df_filtered_bysubgroup().$index.length
         return this.cardmetrics().filter(r => (r[2]>=(1-this.cardmetrics_threshold())*count))
+    },this)
+    this.all_cards = ko.computed(function(){
+        return this.df().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3)).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
     },this)
     this.cards = ko.computed(function(){
         return this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3)).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
