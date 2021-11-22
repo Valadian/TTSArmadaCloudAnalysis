@@ -236,6 +236,15 @@ function AnalysisModel(df){
                 }
                 return [description, countmean[i][1],countmean[i][0],pairing];
             }).sort((a, b) => b[2]- a[2]) //1 = score //2 = count
+        } else if (this.groupby()=="squads"){
+            let df = this.df_filtered()
+            if (df.$index.length==0){
+                return []
+            }
+            var ranges = [["None",-1,0],["Minimal (0-40]",0,40],["Light (40-80]",40,80],["Moderate (80-100]",80,100],["Full (100-130]",100,130],["Max (130-134]",130,134]]
+            var filters = ranges.map(r => df['squads'].gt(r[1]).and(df['squads'].le(r[2])))
+            var dfs = filters.map(filter => df.loc({rows:filter}))
+            return ranges.map((r, i) => [r[0], dfs[i].$index.length>0?dfs[i]['points'].mean():0, dfs[i].$index.length, {'squads':'('+r[1]+","+r[2]+"]"}])
         } else {
             means = this.df_filtered().groupby([this.groupby()]).agg({'points':'mean'}).values
             count_values = this.df_filtered().groupby([this.groupby()]).agg({'points':'count'})['points_count'].values
