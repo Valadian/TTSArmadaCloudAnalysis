@@ -139,11 +139,12 @@ function AnalysisModel(df){
     },this)
     this.df_filtered_bytournament = ko.computed(function(){
         filtered = this.df_filtered_bycmdr()
-        if (this.selectedTournamentCodes().length>0){
-            filter = new dfd.Series(dfgames.values.map(r=>false))
+        if (filtered.$index.length>0 && this.selectedTournamentCodes().length>0){
+            filter = new dfd.Series(filtered.values.map(r=>false))
             // filter = filtered['tournamentCode'].isna()
             for( var i in this.selectedTournamentCodes()){
-                filter = filter.or(new dfd.Series(dfgames.loc({columns:['tournamentCode']}).values.map(r=>r[0]==this.selectedTournamentCodes()[i])))
+                
+                filter = filter.or(new dfd.Series(filtered.loc({columns:['tournamentCode']}).values.map(r=>r[0]==this.selectedTournamentCodes()[i])))
             }
             filtered = filtered.loc({rows:filter})
         }
@@ -205,6 +206,9 @@ function AnalysisModel(df){
             return []
         } else if (this.groupby()=="shiptype"){
             if (this.selectedShips()==""){
+                return []
+            }
+            if (this.df_filtered().$index.length==0){
                 return []
             }
             var agg = df_groupby(this.df_filtered(),this.ships_byname()[this.selectedShips()].cols()).agg({'points':['count','mean']})
