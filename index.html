@@ -165,6 +165,9 @@
                             <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name'}">
                                 <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
                             </label>
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='squads'}">
+                                <input type="radio" name="grouping" value="squads" data-bind="checked: groupby" autocomplete="off"> Squads
+                            </label>
                             <div class="btn-group" role="group">
                                 <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype'}">
                                 Ship Type
