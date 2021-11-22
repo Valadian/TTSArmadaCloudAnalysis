@@ -21,18 +21,35 @@ function AnalysisModel(df){
         return location.protocol + '//' + location.host + location.pathname
     },this)
     this.url = ko.computed(function(){
-        let data = {
-            selectedFactions:this.selectedFactions(),
-            selectedCommanders:this.selectedCommanders(),
-            selectedTournamentCodes:this.selectedTournamentCodes(),
-            selectedPlayers:this.selectedPlayers(),
-            selectedCards:this.selectedCards(),
-            ranked:this.ranked(),
-            groupby:this.groupby(),
-            selectedShips:this.selectedShips(),
-            subgroup:this.subgroup()
+        let data = {}
+        if (this.selectedFactions().length>0){
+            data['selectedFactions'] = this.selectedFactions()
         }
-        return location.protocol + '//' + location.host + location.pathname + "?data="+btoa(JSON.stringify(data));
+        if (this.selectedCommanders().length>0){
+            data['selectedCommanders'] = this.selectedCommanders()
+        }
+        if (this.selectedTournamentCodes().length>0){
+            data['selectedTournamentCodes'] = this.selectedTournamentCodes()
+        }
+        if (this.selectedPlayers().length>0){
+            data['selectedPlayers'] = this.selectedPlayers()
+        }
+        if (this.selectedCards().length>0){
+            data['selectedCards'] = this.selectedCards()
+        }
+        if (this.ranked()!=''){
+            data['ranked'] = this.ranked()
+        }
+        if (this.groupby()!=''){
+            data['groupby'] = this.groupby()
+        }
+        if (this.selectedShips()!='' && this.groupby()=='shiptype'){
+            data['selectedShips'] = this.selectedShips()
+        }
+        if (Object.keys(this.subgroup()).length>0 && this.groupby()=='shiptype'){
+            data['subgroup'] = this.subgroup()
+        }
+        return location.protocol + '//' + location.host + location.pathname + (Object.keys(data).length>0?"?data="+btoa(JSON.stringify(data)):"");
     },this)
     this.cursorFocus = function(elem) {
         var x, y;
