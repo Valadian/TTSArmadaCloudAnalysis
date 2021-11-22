@@ -43,38 +43,61 @@
             <div class="col-12 col-lg-3">
                 <div class="card mt-3">
                     <div class="card-header">
-                        Filter
+                        <i class="bi bi-filter"></i> Filter
                     </span>
                     <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#filter-card-body" aria-expanded="true" aria-controls="collapseOne">
                     </button>
                     </div>
                     <div class="card-body collapse show" id="filter-card-body">
-                        Factions:
-                        <!-- ko if: selectedFactions().length > 0-->
-                        <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedFactions([])"></i>
-                        <!-- /ko -->
-                        <select data-bind="options: factions, selectedOptions: selectedFactions" size="4" multiple="true" class="form-select" ></select>
-                        <hr>
-                        Commanders:
-                        <!-- ko if: selectedCommanders().length > 0-->
-                        <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedCommanders([])"></i>
-                        <!-- /ko -->
-                        <select data-bind="options: commanders, selectedOptions: selectedCommanders" size="10" multiple="true" class="form-select" ></select>
-                        <hr>
-                        Tournament:
-                        <!-- ko if: selectedTournamentCodes().length > 0-->
-                        <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedTournamentCodes([])"></i>
-                        <!-- /ko -->
-                        <select data-bind="options: tournamentCodes, selectedOptions: selectedTournamentCodes" size="4" multiple="true" class="form-select" ></select>
-                        <hr>
-                        Players:
-                        <!-- ko if: selectedPlayers().length > 0-->
-                        <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedPlayers([])"></i>
-                        <!-- /ko -->
-                        <select data-bind="options: players, selectedOptions: selectedPlayers" size="4" multiple="true" class="form-select" ></select>
-                        <hr>
-                        Ranked:<br>
-                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                        <h4>
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#factionSelection">
+                                Factions:
+                                <!-- ko if: selectedFactions().length > 0-->
+                                <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedFactions([])"></i>
+                                <!-- /ko -->
+                            </button>
+                        </h4>
+                        <div id="factionSelection" class="accordion-collapse collapse show mb-3">
+                            <select data-bind="options: factions, selectedOptions: selectedFactions" size="4" multiple="true" class="form-select" ></select>
+                        </div>
+
+                        <h4>
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#commanderSelection">
+                                Commanders:
+                                <!-- ko if: selectedCommanders().length > 0-->
+                                <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedCommanders([])"></i>
+                                <!-- /ko -->
+                            </button>
+                        </h4>
+                        <div id="commanderSelection" class="accordion-collapse collapse show mb-3">
+                            <select data-bind="options: commanders, selectedOptions: selectedCommanders" size="10" multiple="true" class="form-select" ></select>
+                        </div>
+                        
+                        <h4>
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#tournamentSelection">
+                                <i class="bi bi-trophy"></i> &nbsp;Tournament:
+                                <!-- ko if: selectedTournamentCodes().length > 0-->
+                                <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedTournamentCodes([])"></i>
+                                <!-- /ko -->
+                            </button>
+                        </h4>
+                        <div id="tournamentSelection" class="accordion-collapse collapse mb-3">
+                            <select data-bind="options: tournamentCodes, selectedOptions: selectedTournamentCodes" size="10" multiple="true" class="form-select" ></select>
+                        </div>
+                        
+                        <h4>
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#playerSelection">
+                                <i class="bi bi-person-circle"></i> &nbsp;Players:
+                                <!-- ko if: selectedPlayers().length > 0-->
+                                <i class="bi bi-x-circle-fill" style="cursor: pointer;" data-bind="click: () => selectedPlayers([])"></i>
+                                <!-- /ko -->
+                            </button>
+                        </h4>
+                        <div id="playerSelection" class="accordion-collapse collapse mb-3">
+                            <select data-bind="options: players, selectedOptions: selectedPlayers" size="10" multiple="true" class="form-select" ></select>
+                        </div>
+                        
+                        <div class="btn-group btn-group-toggle mt-3" data-toggle="buttons">
                             <label class="btn btn-outline-secondary active" data-bind="css: { active: String(ranked()) == '' }">
                                 <input type="radio" name="ranked" value="" data-bind="checked: ranked" autocomplete="off" checked> All
                             </label>
@@ -90,7 +113,7 @@
             <div class="col-12 col-lg-9">
                 <div class="card mt-3">
                     <div class="card-header">
-                        Group By
+                        <i class="bi bi-diagram-3"></i> Group By
                         <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#groupby-card-body" aria-expanded="true" aria-controls="collapseOne">
                         </button>
                     </div>
@@ -145,7 +168,7 @@
                 <div id="scores" class="card mt-3 invisible">
                     <div class="card-header">
                         <span>
-                        Scores
+                        <i class="bi bi-bar-chart-line"></i> Tournament Point Distribution
                         <!-- ko foreach: subgroup_entries-->
                         <!-- ko if: $data[1]==0-->
                         <span class="badge rounded-pill bg-danger" data-bind="text: $data[0]"></span>
@@ -170,7 +193,7 @@
                 </div>
                 <div id="statistics" class="card mt-3 invisible">
                     <div class="card-header">
-                        Statistics
+                        <i class="bi bi-calculator"></i> Statistics
                         <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#statistics-card-body" aria-expanded="true" aria-controls="collapseOne">
                     </div>
                     <div class="card-body collapse show" id="statistics-card-body">
@@ -231,7 +254,7 @@
                 </div>
                 <div id="cardmetrics" class="card mt-3 invisible">
                     <div class="card-header">
-                        Card Performance    
+                        <i class="bi bi-hand-thumbs-up-fill"></i> Popular Combinations    
                         <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#cardmetrics-card-body" aria-expanded="true" aria-controls="collapseOne">
                     </div>
                     <div class="card-body collapse show" id="cardmetrics-card-body">
@@ -280,7 +303,7 @@
                 </div>
                 <div id="nemesis" class="card mt-3 invisible">
                     <div class="card-header">
-                        Nemesis    
+                        <i class="bi bi-hand-thumbs-down-fill"></i> Challenging Opponents    
                         <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#nemesis-card-body" aria-expanded="true" aria-controls="collapseOne">
                     </div>
                     <div class="card-body collapse show" id="nemesis-card-body">
