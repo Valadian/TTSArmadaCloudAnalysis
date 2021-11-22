@@ -642,8 +642,10 @@ dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
             }
 
             setTimeout(function() {
-                for(var key of Object.keys(data).slice(1)){
-                    koModel[key](data[key])
+                for(var key of Object.keys(data)){
+                    if(key!='selectedFactions'){
+                        koModel[key](data[key])
+                    }
                 }
             },100)
         }
