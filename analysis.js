@@ -163,7 +163,9 @@ function AnalysisModel(df){
     this.df_filtered =  ko.computed(function(){
         filtered = this.df_filtered_byplayer()
         if(this.ranked()){
-            filtered = filtered.loc({rows:filtered['ranked'].eq("True")})
+            if (filtered.$index.length>0){
+                filtered = filtered.loc({rows:filtered['ranked'].eq("True")})
+            }
         }
         return filtered
     },this)
@@ -277,6 +279,9 @@ function AnalysisModel(df){
     this.nemesismetrics = ko.observableArray([])
     this.nemesis_threshold = ko.observable(90)
     this.nemesismetrics_filtered = ko.computed(function(){
+        if (this.df_filtered_bysubgroup().$index.length==0){
+            return []
+        }
         var mean = this.df_filtered_bysubgroup()['points'].mean()
         return this.nemesismetrics().filter(r => (r[2]>=(100-this.nemesis_threshold())) && (+r[1]<+mean))
     },this)
@@ -382,7 +387,10 @@ function AnalysisModel(df){
             bargroupgap: 0.05, 
             // barmode: "overlay",
             title: "Tournament Points", 
-            xaxis: {title: "Points",fixedrange: true}, 
+            xaxis: {
+                title: "Points",
+                fixedrange: true,
+                range: [0,10.5]}, 
             yaxis: {fixedrange: true},
             // yaxis: {title: "Probability"},
             plot_bgcolor:"transparent",
@@ -401,7 +409,32 @@ function AnalysisModel(df){
                 l: 40,
                 r: 20,
                 t: 40,
-            }
+            },
+            shapes: [{
+                type: 'line',
+                x0: (this.df_second()['points'] ? this.df_second()['points'].mean(): 0),
+                x1: (this.df_second()['points'] ? this.df_second()['points'].mean(): 0),
+                y0: 0,
+                y1: 1,
+                yref: 'paper',
+                line: {
+                    color: '#C0C0C0',
+                    width: 5,
+                    dash: 'dot'
+                },
+            },{
+                type: 'line',
+                x0: (this.df_first()['points'] ? this.df_first()['points'].mean(): 0),
+                x1: (this.df_first()['points'] ? this.df_first()['points'].mean(): 0),
+                y0: 0,
+                y1: 1,
+                yref: 'paper',
+                line: {
+                    color: '#d4af37',
+                    width: 5,
+                    dash: 'dot'
+                },
+            }]
         }
         var config = {
             // showEditInChartStudio: true,
@@ -523,6 +556,7 @@ dfd.read_csv("2021_10_28_ttsarmada_cloud.csv")
     var nocmdr = dfgames['commander'].ne("")
     dfgames = dfgames.loc({rows:moralo.and(bossk).and(nocmdr)})
     dfgames['name'].apply(s => String(s), {inplace:true})//Doesn't work?
+    dfgames.fillna(['False',''],{columns:['ranked','tournamentCode']})
     koModel = new AnalysisModel(dfgames)
     shipdict = {}
     for(var ship in ship_filters){
