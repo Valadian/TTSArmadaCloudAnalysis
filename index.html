@@ -103,10 +103,18 @@
                             </button>
                         </h4>
                         <div id="cardSelection" class="accordion-collapse collapse mb-3">
+                            <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
+                                <label class="btn btn-outline-secondary active" data-bind="css: { active: String(selectedcards_op()) == 'and' }">
+                                    <input type="radio" name="selectedcards_op" value="and" data-bind="checked: selectedcards_op" autocomplete="off" checked> All Selected:
+                                </label>
+                                <label class="btn btn-outline-secondary" data-bind="css: { active: String(selectedcards_op()) == 'or' }">
+                                    <input type="radio" name="selectedcards_op" value="or" data-bind="checked: selectedcards_op" autocomplete="off" > At least one:
+                                </label>
+                            </div>
                             <select data-bind="options: all_cards, selectedOptions: selectedCards" size="10" multiple="true" class="form-select" ></select>
                         </div>
                         
-                        <div class="btn-group btn-group-toggle mt-3" data-toggle="buttons">
+                        <div class="btn-group btn-group-toggle mt-3 d-flex" data-toggle="buttons">
                             <label class="btn btn-outline-secondary active" data-bind="css: { active: String(ranked()) == '' }">
                                 <input type="radio" name="ranked" value="" data-bind="checked: ranked" autocomplete="off" checked> All
                             </label>
@@ -123,28 +131,36 @@
                 <div class="card mt-3">
                     <div class="card-header">
                         <i class="bi bi-diagram-3"></i> Group By
+                        <div class="btn-group btn-group-toggle ml-3" data-toggle="buttons">
+                            <label class="btn btn-outline-secondary active" data-bind="css: { active: String(groupby_opposing()) == '' }">
+                                <input type="radio" name="groupby_opposing" value="" data-bind="checked: groupby_opposing" autocomplete="off" checked> Self
+                            </label>
+                            <label class="btn btn-outline-danger" data-bind="css: { active: String(groupby_opposing()) == 'opposing_' }">
+                                <input type="radio" name="groupby_opposing" value="opposing_" data-bind="checked: groupby_opposing" autocomplete="off" > Opposing
+                            </label>
+                        </div>
                         <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#groupby-card-body" aria-expanded="true" aria-controls="collapseOne">
                         </button>
                     </div>
                     <div class="card-body collapse show" id="groupby-card-body">
                         <div class="btn-group btn-group-toggle d-none d-sm-flex" data-toggle="buttons">
-                            <label class="btn btn-outline-secondary active" data-bind="css: { active: groupby()==''}">
+                            <label class="btn btn-outline-light active" data-bind="css: { active: groupby()==''}">
                                 <input type="radio" name="grouping" value="" data-bind="checked: groupby" autocomplete="off" checked> None
                             </label>
-                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='faction'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='faction','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="faction" data-bind="checked: groupby" autocomplete="off"> Faction
                             </label>
-                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='commander'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='commander','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="commander" data-bind="checked: groupby" autocomplete="off"> Commander
                             </label>
-                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
                             </label>
-                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='squads'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='squads','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="squads" data-bind="checked: groupby" autocomplete="off"> Squads
                             </label>
                             <div class="btn-group" role="group">
-                                <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype'}">
+                                <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 Ship Type
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1" data-bind="foreach: ships">
@@ -153,23 +169,23 @@
                             </div>
                         </div>
                         <div class="btn-group-vertical btn-group-toggle d-block d-sm-none" data-toggle="buttons">
-                            <label class="btn btn-outline-secondary active" data-bind="css: { active: groupby()==''}">
+                            <label class="btn btn-outline-light active" data-bind="css: { active: groupby()==''}">
                                 <input type="radio" name="grouping" value="" data-bind="checked: groupby" autocomplete="off" checked> None
                             </label>
-                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='faction'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='faction','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="faction" data-bind="checked: groupby" autocomplete="off"> Faction
                             </label>
-                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='commander'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='commander','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="commander" data-bind="checked: groupby" autocomplete="off"> Commander
                             </label>
-                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
                             </label>
-                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='squads'}">
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='squads','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="squads" data-bind="checked: groupby" autocomplete="off"> Squads
                             </label>
                             <div class="btn-group" role="group">
-                                <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype'}">
+                                <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 Ship Type
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1" data-bind="foreach: ships">
@@ -209,8 +225,8 @@
                         </span>
                         <!-- /ko -->
                         <!-- ko if: selectedCards().length>0-->
-                        <span class="badge rounded-pill bg-secondary">
-                            <span data-bind="text: selectedCards().join(', ')"></span>
+                        <span class="badge rounded-pill bg-success">
+                            <span data-bind="text: (selectedcards_op()=='and'?'All: ':'Any: ')+(selectedCards().join(', '))"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => selectedCards([])"></i>
                         </span>
                         <!-- /ko -->
@@ -277,7 +293,7 @@
                             <thead>
                                 <tr>
                                     <th></th>
-                                    <th scope="col">Group:</th>
+                                    <th scope="col"><span class="text-danger" data-bind="text:groupby_opposing"></span> Group:</th>
                                     <th scope="col" class="text-end">
                                         <span class="d-none d-md-block">Number of Games:</span>
                                         <span class="d-block d-md-none">#:</span>
