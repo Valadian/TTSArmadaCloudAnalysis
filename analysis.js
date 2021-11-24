@@ -77,42 +77,15 @@ function AnalysisModel(df){
         }
     }
     this.copyurl = function(){
-        if(typeof(event)=="undefined" || typeof(event.toElement)=="undefined"){ //|| typeof(element.value)=="undefined"
-            return;
-        }
-        target = document.getElementById('url')
-        if(typeof(target)=="undefined" || typeof(target.value)=="undefined"){
-            return;
-        }
-        this.cursorFocus(target)
-        target.setSelectionRange(0, target.value.length);
-
-        // copy the selection
-        var succeed;
-        try {
-              succeed = document.execCommand("copy");
-              if(succeed){
-                //   $.notify({
-                //     // options
-                //     message: 'Link Copied to Clipboard',
-                //     url: self.shareLink(),
-                //     target: '_blank'
-                //   },{
-                //     // settings
-                //     type: 'success',
-	            //     delay: 3000,
-                //     animate: {
-                //        enter: 'animated fadeInDown',
-                //        exit: 'animated fadeOutUp'
-                //     },
-                //     placement: {
-                //         from: "top",
-                //         align: "center"
-                //     },
-                //   });
-              }
-        } catch(e) {
-            succeed = false;
+        var input = document.getElementById("url");
+        input.focus();
+        input.select();
+        document.execCommand('Copy');
+        
+        if ( document.selection ) {
+            document.selection.empty();
+        } else if ( window.getSelection ) {
+            window.getSelection().removeAllRanges();
         }
     }
     this.subgroup_entries = ko.computed(function(){
