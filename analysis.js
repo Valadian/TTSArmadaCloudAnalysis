@@ -283,13 +283,13 @@ function AnalysisModel(df){
         }
     }, this)
     this.groupby_metrics = ko.computed(function(){
+        if (this.df_filtered().$index.length==0){
+            return []
+        }
         if (this.groupby()==""){
             return []
         } else if (this.groupby()=="shiptype"){
             if (this.selectedShips()==""){
-                return []
-            }
-            if (this.df_filtered().$index.length==0){
                 return []
             }
             var agg = df_groupby(this.df_filtered(),this.shiptype_groupby()).agg({'points':['count','mean']})
