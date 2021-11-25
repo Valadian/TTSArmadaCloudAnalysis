@@ -149,7 +149,7 @@
 
                         <h4>
                             <button class="accordion-button collapsed text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#varsitySection">
-                                <i class="bi bi-collection"></i> &nbsp;Varsity Filter:
+                                <i class="bi bi-mortarboard-fill"></i> &nbsp;Veteran Filter:
                             </button>
                         </h4>
                         <div id="varsitySection" class="accordion-collapse collapse mb-3 card" style="padding: 10px;margin: 0px -10px;">
@@ -164,7 +164,7 @@
                                     <input type="radio" name="varsity_only" value="" data-bind="checked: varsity_only" autocomplete="off" checked> All
                                 </label>
                                 <label class="btn btn-outline-primary" data-bind="css: { active: String(varsity_only()) == 'true' }">
-                                    <input type="radio" name="varsity_only" value="true" data-bind="checked: varsity_only" autocomplete="off" > Varsity
+                                    <input type="radio" name="varsity_only" value="true" data-bind="checked: varsity_only" autocomplete="off" > Veteran
                                 </label>
                             </div>
                         </div>
@@ -329,7 +329,7 @@
                         
                         <!-- ko if: varsity_only()=="true"-->
                         <span class="badge rounded-pill bg-primary">
-                            <span>VARSITY</span>
+                            <span>Veteran</span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => varsity_only('')"></i>
                         </span>
                         <!-- /ko -->
