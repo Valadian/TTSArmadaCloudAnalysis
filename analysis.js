@@ -12,6 +12,7 @@ function AnalysisModel(df,dfplayers){
     this.min_elo = ko.observable(MIN_ELO)
     this.elo_exception = ko.observable(ELO_EXCEPTION)
     this.varsity_only = ko.observable('')
+    this.stats_filter = ko.observable('')
     this.dfplayers_filtered = ko.computed(function(){
         df = this.dfplayers()
         exp_filt = df['games'].ge(+this.min_games())
@@ -107,6 +108,9 @@ function AnalysisModel(df,dfplayers){
         }
         if (this.groupby()!=''){
             data['groupby'] = this.groupby()
+        }
+        if (this.stats_filter()!=''){
+            data['stats_filter'] = this.stats_filter()
         }
         if (this.groupby_opposing()!=''){
             data['groupby_opposing'] = this.groupby_opposing()
@@ -336,6 +340,9 @@ function AnalysisModel(df,dfplayers){
             return this.ships_byname()[this.selectedShips()].cols()
         }
     }, this)
+    this.common_toggle_visible = ko.computed(function(){
+        return this.groupby()!="" && this.groupby_metrics().length>10
+    },this)
     this.groupby_metrics = ko.computed(function(){
         if (this.df_filtered().$index.length==0){
             return []
@@ -384,6 +391,16 @@ function AnalysisModel(df,dfplayers){
                 pairing[e[0]] = 1
                 return [e[0], e[1], count_values[i], pairing];
             }).sort((a, b) => b[1]- a[1]);
+        }
+    },this)
+    this.groupby_metrics_filtered = ko.computed(function(){
+        if(this.stats_filter()==""){
+            var count = this.df_filtered().$index.length
+            var groups = this.groupby_metrics().length
+            var mingroupsize = count/groups/2
+            return this.groupby_metrics().filter(row => row[2]>=mingroupsize)
+        } else {
+            return this.groupby_metrics()
         }
     },this)
     this.groupby_metrics_max = ko.computed(function(){
@@ -728,6 +745,53 @@ Promise.all([games_promise,players_promise])
     dfgames.addColumn({column:'i_winbig', values:i_winbig, inplace:true})
     let i_losebig = dfgames['points'].apply(w => (w<=3?1:0))
     dfgames.addColumn({column:'i_losebig', values:i_losebig, inplace:true})
+
+    for (key in ship_filters){
+        let archcnt = dfgames['points'].apply(p => 0)
+        let archcnt_vs = dfgames['points'].apply(p => 0)
+        for (ship of ship_filters[key]){
+            archcnt = archcnt.add(dfgames[ship])
+            archcnt_vs = archcnt.add(dfgames["VS:"+ship])
+        }
+        dfgames.addColumn({column:key,values:archcnt,inplace:true})
+        dfgames.addColumn({column:key+"_VS",values:archcnt_vs,inplace:true})
+    }
+    shiptypes = dfgames.loc({columns:Object.keys(ship_filters)})
+    archtypes = shiptypes.values.map((r) => {
+        arch = {}
+        for (var i in r){
+            if (r[i]>0){
+                arch[shiptypes.$columns[i]] = r[i]
+            }
+        }
+        archstr = ""
+        for (var key in arch){
+            if(archstr.length>0){
+                archstr+=", "
+            }
+            if(arch[key]>1){
+                archstr = arch[key]+" x "
+            }
+            archstr+=key
+        }
+        // return JSON.stringify(arch)
+        return archstr
+    })
+    dfgames.addColumn({column:'archtype', values:archtypes, inplace:true})
+
+
+    opposing_shiptypes = dfgames.loc({columns:Object.keys(ship_filters).map(s => s+"_VS")})
+    opposing_archtypes = opposing_shiptypes.values.map((r) => {
+        arch = {}
+        for (var i in r){
+            if (r[i]>0){
+                arch[shiptypes.$columns[i].replace("_VS","")] = r[i]
+            }
+        }
+        return JSON.stringify(arch)
+    })
+    dfgames.addColumn({column:'opposing_archtype', values:opposing_archtypes, inplace:true})
+
     koModel = new AnalysisModel(dfgames,dfplayers)
     shipdict = {}
     for(var ship in ship_filters){

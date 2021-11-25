@@ -229,11 +229,16 @@
                                     <i class="bi bi-exclamation-triangle-fill"></i>&nbsp;
                                 </span>
                             </label>
+                        </div>
+                        <div class="btn-group btn-group-toggle d-none d-sm-flex" data-toggle="buttons">
                             <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
                             </label>
                             <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='squads','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="squads" data-bind="checked: groupby" autocomplete="off"> Squads
+                            </label>
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='archtype','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
+                                <input type="radio" name="grouping" value="archtype" data-bind="checked: groupby" autocomplete="off"> Archtypes
                             </label>
                             <div class="btn-group" role="group">
                                 <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
@@ -265,6 +270,9 @@
                             </label>
                             <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='squads','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="squads" data-bind="checked: groupby" autocomplete="off"> Squads
+                            </label>
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='archtype','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
+                                <input type="radio" name="grouping" value="archtype" data-bind="checked: groupby" autocomplete="off"> Archtypes
                             </label>
                             <div class="btn-group" role="group">
                                 <button id="btnGroupDrop1" type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" data-bind="css: { active: groupby()=='shiptype','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
@@ -382,6 +390,14 @@
                 <div id="statistics" class="card mt-3 invisible">
                     <div class="card-header">
                         <i class="bi bi-calculator"></i> Statistics
+                        <div class="btn-group btn-group-toggle ml-3" data-toggle="buttons" data-bind="visible: common_toggle_visible">
+                            <label class="btn btn-outline-secondary active" data-bind="css: { active: String(stats_filter()) == '' }">
+                                <input type="radio" name="stats_filter" value="" data-bind="checked: stats_filter" autocomplete="off" checked> Common
+                            </label>
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: String(stats_filter()) == 'all' }">
+                                <input type="radio" name="stats_filter" value="all" data-bind="checked: stats_filter" autocomplete="off" > All
+                            </label>
+                        </div>
                         <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#statistics-card-body" aria-expanded="true" aria-controls="collapseOne">
                     </div>
                     <div class="card-body collapse show" id="statistics-card-body">
@@ -413,7 +429,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                            <!-- ko foreach: groupby_metrics-->
+                            <!-- ko foreach: groupby_metrics_filtered-->
                                 <tr>
                                     <td>
                                         <!-- ko if: $root.groupby()=='shiptype'-->
