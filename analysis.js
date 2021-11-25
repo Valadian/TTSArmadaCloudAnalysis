@@ -770,7 +770,7 @@ Promise.all([games_promise,players_promise])
                 archstr+=", "
             }
             if(arch[key]>1){
-                archstr = arch[key]+" x "
+                archstr += arch[key]+" x "
             }
             archstr+=key
         }
