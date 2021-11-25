@@ -10,8 +10,15 @@ function AnalysisModel(df){
     this.selectedFactions = ko.observableArray([])
     this.selectedPlayers = ko.observableArray([])
     this.selectedTournamentCodes = ko.observableArray([])
-    this.selectedcards_op = ko.observable("and")
+
     this.selectedCards = ko.observableArray([])
+    this.selectedcards_op = ko.observable("or")
+    this.selectedcards_not = ko.observable("")
+    
+    this.opposingCards = ko.observableArray([])
+    this.opposingcards_op = ko.observable("or")
+    this.opposingcards_not = ko.observable("")
+    
     this.ships_byname = ko.observable()
     this.ships = ko.observableArray([])
     this.selectedShips = ko.observable("")
@@ -39,8 +46,20 @@ function AnalysisModel(df){
         if (this.selectedCards().length>0){
             data['selectedCards'] = this.selectedCards()
         }
-        if (this.selectedcards_op()!="and"){
+        if (this.selectedcards_op()!="or"){
             data['selectedcards_op'] = this.selectedcards_op()
+        }
+        if (this.selectedcards_not()){
+            data['selectedcards_not'] = this.selectedcards_not()
+        }
+        if (this.opposingCards().length>0){
+            data['opposingCards'] = this.opposingCards()
+        }
+        if (this.opposingcards_op()!="or"){
+            data['opposingcards_op'] = this.opposingcards_op()
+        }
+        if (this.opposingcards_not()){
+            data['opposingcards_not'] = this.opposingcards_not()
         }
         if (this.ranked()!=''){
             data['ranked'] = this.ranked()
@@ -165,14 +184,54 @@ function AnalysisModel(df){
         filtered = this.df_filtered_byplayer()
         if (this.selectedCards().length>0){
             filter = filtered['name'].isna()
-            if (this.selectedcards_op()=="or"){
-                for( var card of this.selectedCards()){
-                    filter = filter.or(filtered[card].gt(0))
+            if(this.selectedcards_not()){
+                if (this.selectedcards_op()=="and"){
+                    for( var card of this.selectedCards()){
+                        filter = filter.or(filtered[card].eq(0))
+                    }
+                } else {
+                    filter = filter.or(true)
+                    for( var card of this.selectedCards()){
+                        filter = filter.and(filtered[card].eq(0))
+                    }
                 }
             } else {
-                filter = filter.or(true)
-                for( var card of this.selectedCards()){
-                    filter = filter.and(filtered[card].gt(0))
+                if (this.selectedcards_op()=="or"){
+                    for( var card of this.selectedCards()){
+                        filter = filter.or(filtered[card].gt(0))
+                    }
+                } else {
+                    filter = filter.or(true)
+                    for( var card of this.selectedCards()){
+                        filter = filter.and(filtered[card].gt(0))
+                    }
+                }
+            }
+            filtered = filtered.loc({rows:filter})
+        }
+        if (this.opposingCards().length>0){
+            filter = filtered['name'].isna()
+            if(this.opposingcards_not()){
+                if (this.opposingcards_op()=="and"){
+                    for( var card of this.opposingCards()){
+                        filter = filter.or(filtered["VS:"+card].eq(0))
+                    }
+                } else {
+                    filter = filter.or(true)
+                    for( var card of this.opposingCards()){
+                        filter = filter.and(filtered["VS:"+card].eq(0))
+                    }
+                }
+            } else {
+                if (this.opposingcards_op()=="or"){
+                    for( var card of this.opposingCards()){
+                        filter = filter.or(filtered["VS:"+card].gt(0))
+                    }
+                } else {
+                    filter = filter.or(true)
+                    for( var card of this.opposingCards()){
+                        filter = filter.and(filtered["VS:"+card].gt(0))
+                    }
                 }
             }
             filtered = filtered.loc({rows:filter})

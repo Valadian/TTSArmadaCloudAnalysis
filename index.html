@@ -104,14 +104,47 @@
                         </h4>
                         <div id="cardSelection" class="accordion-collapse collapse mb-3">
                             <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
-                                <label class="btn btn-outline-secondary active" data-bind="css: { active: String(selectedcards_op()) == 'and' }">
-                                    <input type="radio" name="selectedcards_op" value="and" data-bind="checked: selectedcards_op" autocomplete="off" checked> All Selected:
+                                <button class="btn btn-outline-dark active" data-bind="css: { 'active btn-outline-danger': selectedcards_not(),
+                                                                                              'btn-outline-dark': !selectedcards_not() }, 
+                                                                                       click: () => selectedcards_not(!selectedcards_not()),
+                                                                                       text: selectedcards_not()?'Does NOT':'Does'" >Not:</button>
+                                <label class="btn btn-outline-secondary" data-bind="css: { active: String(selectedcards_op()) == 'or',
+                                                                                            'btn-outline-danger': selectedcards_not(),
+                                                                                            'btn-outline-secondary': !selectedcards_not() }">
+                                    <input type="radio" name="selectedcards_op" value="or" data-bind="checked: selectedcards_op" autocomplete="off" > have Any of:
                                 </label>
-                                <label class="btn btn-outline-secondary" data-bind="css: { active: String(selectedcards_op()) == 'or' }">
-                                    <input type="radio" name="selectedcards_op" value="or" data-bind="checked: selectedcards_op" autocomplete="off" > At least one:
+                                <label class="btn btn-outline-secondary active" data-bind="css: { active: String(selectedcards_op()) == 'and',
+                                                                                                  'btn-outline-danger': selectedcards_not(),
+                                                                                                  'btn-outline-secondary': !selectedcards_not() }, }">
+                                    <input type="radio" name="selectedcards_op" value="and" data-bind="checked: selectedcards_op" autocomplete="off" checked> have All of:
                                 </label>
                             </div>
                             <select data-bind="options: all_cards, selectedOptions: selectedCards" size="10" multiple="true" class="form-select" ></select>
+                        </div>
+                        
+                        <h4>
+                            <button class="accordion-button collapsed text-danger" type="button" data-bs-toggle="collapse" data-bs-target="#opposingCardSelection">
+                                <i class="bi bi-collection"></i> &nbsp;Opposing Cards:
+                            </button>
+                        </h4>
+                        <div id="opposingCardSelection" class="accordion-collapse collapse mb-3">
+                            <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
+                                <button class="btn btn-outline-dark active" data-bind="css: { 'active btn-outline-danger': opposingcards_not(),
+                                                                                              'btn-outline-dark': !opposingcards_not() }, 
+                                                                                       click: () => opposingcards_not(!opposingcards_not()),
+                                                                                       text: opposingcards_not()?'Does NOT':'Does'" >Not:</button>
+                                <label class="btn btn-outline-secondary" data-bind="css: { active: String(opposingcards_op()) == 'or',
+                                                                                            'btn-outline-danger': opposingcards_not(),
+                                                                                            'btn-outline-secondary': !opposingcards_not() }">
+                                    <input type="radio" name="opposingcards_op" value="or" data-bind="checked: opposingcards_op" autocomplete="off" > have Any of:
+                                </label>
+                                <label class="btn btn-outline-secondary active" data-bind="css: { active: String(opposingcards_op()) == 'and',
+                                                                                                  'btn-outline-danger': opposingcards_not(),
+                                                                                                  'btn-outline-secondary': !opposingcards_not() }, }">
+                                    <input type="radio" name="opposingcards_op" value="and" data-bind="checked: opposingcards_op" autocomplete="off" checked> have All of:
+                                </label>
+                            </div>
+                            <select data-bind="options: all_cards, selectedOptions: opposingCards" size="10" multiple="true" class="form-select bg-danger" ></select>
                         </div>
                         
                         <div class="btn-group btn-group-toggle mt-3 d-flex" data-toggle="buttons">
@@ -225,9 +258,16 @@
                         </span>
                         <!-- /ko -->
                         <!-- ko if: selectedCards().length>0-->
-                        <span class="badge rounded-pill bg-success">
-                            <span data-bind="text: (selectedcards_op()=='and'?'All: ':'Any: ')+(selectedCards().join(', '))"></span>
+                        <span class="badge rounded-pill bg-success" data-bind="css:{'bg-success':!selectedcards_not(),'bg-danger':selectedcards_not()}">
+                            <span data-bind="text: (selectedcards_not()?'Not ':'')+(selectedcards_op()=='and'?'All: ':'Any: ')+(selectedCards().join(', '))"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => selectedCards([])"></i>
+                        </span>
+                        <!-- /ko -->
+                        
+                        <!-- ko if: opposingCards().length>0-->
+                        <span class="badge rounded-pill bg-success" data-bind="css:{'bg-success':!opposingcards_not(),'bg-danger':opposingcards_not()}">
+                            <span data-bind="text: 'Opposing '+(opposingcards_not()?'Not ':'')+(opposingcards_op()=='and'?'All: ':'Any: ')+(opposingCards().join(', '))"></span>
+                            <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => opposingCards([])"></i>
                         </span>
                         <!-- /ko -->
                         
