@@ -1,8 +1,31 @@
 dfgames = null
 factions = null
 koModel = null
-function AnalysisModel(df){
+
+MIN_GAMES = 7
+MIN_ELO = 900
+ELO_EXCEPTION = 1200
+function AnalysisModel(df,dfplayers){
     this.df = ko.observable(df)
+    this.dfplayers = ko.observable(dfplayers)
+    this.min_games = ko.observable(MIN_GAMES)
+    this.min_elo = ko.observable(MIN_ELO)
+    this.elo_exception = ko.observable(ELO_EXCEPTION)
+    this.varsity_only = ko.observable('')
+    this.dfplayers_filtered = ko.computed(function(){
+        df = this.dfplayers()
+        exp_filt = df['games'].ge(+this.min_games())
+        weak_filt = df['elo'].ge(+this.min_elo())
+        win_filt = df['elo'].gt(+this.elo_exception())
+        return df.loc({rows:(exp_filt.or(win_filt)).and(weak_filt)})
+    },this)
+    this.df_varsity = ko.computed(function(){
+        df = this.df()
+        varsity_players = this.dfplayers_filtered()['name'].values
+        p1 = df['name'].apply(n => varsity_players.includes(n))
+        p2 = df['opposing_name'].apply(n => varsity_players.includes(n))
+        return df.loc({rows:p1.and(p2)})
+    },this)
     this.commanders = ko.observableArray([])
     this.factions = ko.observableArray([])
     this.tournamentCodes = ko.observableArray([])
@@ -23,6 +46,7 @@ function AnalysisModel(df){
     this.ships = ko.observableArray([])
     this.selectedShips = ko.observable("")
     this.ranked = ko.observable("")
+    this.firstsecond = ko.observable("")
     this.groupby = ko.observable("")
     this.groupby_opposing = ko.observable("")
     this.subgroup = ko.observable({})
@@ -61,8 +85,25 @@ function AnalysisModel(df){
         if (this.opposingcards_not()){
             data['opposingcards_not'] = this.opposingcards_not()
         }
+        
+        if (this.min_games()!=MIN_GAMES){
+            data['min_games'] = this.min_games()
+        }
+        if (this.min_elo()!=MIN_ELO){
+            data['min_elo'] = this.min_elo()
+        }
+        if (this.elo_exception()!=ELO_EXCEPTION){
+            data['elo_exception'] = this.elo_exception()
+        }
+        if (this.varsity_only()!=""){
+            data['varsity_only'] = this.varsity_only()
+        }
+
         if (this.ranked()!=''){
             data['ranked'] = this.ranked()
+        }
+        if (this.firstsecond()!=''){
+            data['firstsecond'] = this.firstsecond()
         }
         if (this.groupby()!=''){
             data['groupby'] = this.groupby()
@@ -136,6 +177,9 @@ function AnalysisModel(df){
     },this)
     this.df_filtered_byfaction = ko.computed(function(){
         filtered = this.df()
+        if(this.varsity_only()=="true"){
+            filtered = this.df_varsity()
+        }
         if (this.selectedFactions().length>0){
             filter = filtered['faction'].isna()
             for( var i in this.selectedFactions()){
@@ -240,10 +284,20 @@ function AnalysisModel(df){
     },this)
     this.df_filtered =  ko.computed(function(){
         filtered = this.df_filtered_bycard()
-        if(this.ranked()){
-            if (filtered.$index.length>0){
-                filtered = filtered.loc({rows:filtered['ranked'].eq("True")})
-            }
+        if (filtered.$index.length==0){
+            return filtered
+        }
+        if(this.ranked()=="true"){
+            filtered = filtered.loc({rows:filtered['ranked'].eq("True")})
+        }
+        if (filtered.$index.length==0){
+            return filtered
+        }
+        if(this.firstsecond()=="first"){
+            filtered = filtered.loc({rows:filtered['first'].eq("True")})
+        }
+        if(this.firstsecond()=="second"){
+            filtered = filtered.loc({rows:filtered['first'].eq("False")})
         }
         return filtered
     },this)
@@ -314,8 +368,17 @@ function AnalysisModel(df){
             var dfs = filters.map(filter => df.loc({rows:filter}))
             return ranges.map((r, i) => [r[0], dfs[i].$index.length>0?dfs[i]['points'].mean():0, dfs[i].$index.length, {[this.groupby_opposing()+'squads']:'('+r[1]+","+r[2]+"]"}])
         } else {
-            means = this.df_filtered().groupby([this.groupby_opposing()+this.groupby()]).agg({'points':'mean'}).values
-            count_values = this.df_filtered().groupby([this.groupby_opposing()+this.groupby()]).agg({'points':'count'})['points_count'].values
+            let df = this.df_filtered()
+            if (df.$index.length==0){
+                return []
+            }
+            let key = this.groupby_opposing()+this.groupby()
+            if(this.groupby()=="objective"){
+                key = this.groupby()
+            }
+            let means = this.df_filtered().groupby([key]).agg({'points':'mean'}).values
+            let count_values = this.df_filtered().groupby([key]).agg({'points':'count'})['points_count'].values
+            // var win = this.df_filtered().groupby([key]).agg({'win':'mean'})['win_mean'].values
             return means.map(function(e, i) {
                 var pairing = {}
                 pairing[e[0]] = 1
@@ -537,7 +600,8 @@ function AnalysisModel(df){
             // showEditInChartStudio: true,
             'modeBarButtonsToRemove': ['sendDataToCloud']
         }
-        Plotly.newPlot('plot_hist',[trace1,trace2],layout,config)
+        setTimeout(
+        () => Plotly.newPlot('plot_hist',[trace1,trace2],layout,config),500)
         //this.filtered()['points'].plot("plot_hist").hist()
     },this)
 }
@@ -644,17 +708,27 @@ df_groupby = function(df, keys){
     // console.log(pairings)
 }
 ko.options.deferUpdates = true;
-
-dfd.read_csv("2021_11_24_ttsarmada_cloud.csv")
-.then(df => {
-    dfgames = df
+games_promise = dfd.read_csv("2021_11_24_ttsarmada_cloud.csv")
+players_promise = dfd.read_csv("2021_11_24_ttsarmada_cloud_players.csv")
+Promise.all([games_promise,players_promise])
+.then((results) => {
+    dfgames = results[0]
+    dfplayers = results[1]
     var moralo = dfgames['commander'].ne("Moralo Eval (22)")
     var bossk = dfgames['commander'].ne("Bossk (23)")
     var nocmdr = dfgames['commander'].ne("")
-    dfgames = dfgames.loc({rows:moralo.and(bossk).and(nocmdr)})
+    var Ackbar28 = dfgames['commander'].ne("Admiral Raddus (28)")
+    var notnull = dfgames['commander'].values.map(v => v!=null)
+    dfgames = dfgames.loc({rows:moralo.and(bossk).and(nocmdr).and(Ackbar28).and(notnull)})
     dfgames['name'].apply(s => String(s), {inplace:true})//Doesn't work?
     dfgames.fillna(['False',''],{columns:['ranked','tournamentCode']})
-    koModel = new AnalysisModel(dfgames)
+    let i_win = dfgames['win'].apply(w => (w=="True"?1:0))
+    dfgames.addColumn({column:'i_win', values:i_win, inplace:true})
+    let i_winbig = dfgames['points'].apply(w => (w>=8?1:0))
+    dfgames.addColumn({column:'i_winbig', values:i_winbig, inplace:true})
+    let i_losebig = dfgames['points'].apply(w => (w<=3?1:0))
+    dfgames.addColumn({column:'i_losebig', values:i_losebig, inplace:true})
+    koModel = new AnalysisModel(dfgames,dfplayers)
     shipdict = {}
     for(var ship in ship_filters){
         shipdict[ship] = {

@@ -146,6 +146,29 @@
                             </div>
                             <select data-bind="options: all_cards, selectedOptions: opposingCards" size="10" multiple="true" class="form-select bg-danger" ></select>
                         </div>
+
+                        <h4>
+                            <button class="accordion-button collapsed text-primary" type="button" data-bs-toggle="collapse" data-bs-target="#varsitySection">
+                                <i class="bi bi-collection"></i> &nbsp;Varsity Filter:
+                            </button>
+                        </h4>
+                        <div id="varsitySection" class="accordion-collapse collapse mb-3 card" style="padding: 10px;margin: 0px -10px;">
+                            Min Games:
+                            <input data-bind="value: min_games" class="form-control">
+                            Min ELO:
+                            <input data-bind="value: min_elo" class="form-control">
+                            Low Game Count ELO exception:
+                            <input data-bind="value: elo_exception" class="form-control">
+                            <div class="btn-group btn-group-toggle mt-3 d-flex" data-toggle="buttons">
+                                <label class="btn btn-outline-secondary active" data-bind="css: { active: String(varsity_only()) == '' }">
+                                    <input type="radio" name="varsity_only" value="" data-bind="checked: varsity_only" autocomplete="off" checked> All
+                                </label>
+                                <label class="btn btn-outline-primary" data-bind="css: { active: String(varsity_only()) == 'true' }">
+                                    <input type="radio" name="varsity_only" value="true" data-bind="checked: varsity_only" autocomplete="off" > Varsity
+                                </label>
+                            </div>
+                        </div>
+
                         
                         <div class="btn-group btn-group-toggle mt-3 d-flex" data-toggle="buttons">
                             <label class="btn btn-outline-secondary active" data-bind="css: { active: String(ranked()) == '' }">
@@ -153,6 +176,20 @@
                             </label>
                             <label class="btn btn-outline-warning" data-bind="css: { active: String(ranked()) == 'true' }">
                                 <input type="radio" name="ranked" value="true" data-bind="checked: ranked" autocomplete="off" > Ranked
+                            </label>
+                        </div>
+                        
+
+                        
+                        <div class="btn-group btn-group-toggle mt-3 d-flex" data-toggle="buttons">
+                            <label class="btn btn-outline-secondary active" data-bind="css: { active: firstsecond()== '' }">
+                                <input type="radio" name="firstsecond" value="" data-bind="checked: firstsecond" autocomplete="off" checked> All
+                            </label>
+                            <label class="btn btn-outline-warning" data-bind="css: { active: firstsecond() == 'first' }">
+                                <input type="radio" name="firstsecond" value="first" data-bind="checked: firstsecond" autocomplete="off" > 1st Player
+                            </label>
+                            <label class="btn btn-outline-light" data-bind="css: { active: firstsecond() == 'second' }">
+                                <input type="radio" name="firstsecond" value="second" data-bind="checked: firstsecond" autocomplete="off" > 2nd Player
                             </label>
                         </div>
                         <!-- <input type="checkbox" data-bind="checked: ranked" class="form-checkbox" ></select> -->
@@ -186,6 +223,12 @@
                             <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='commander','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="commander" data-bind="checked: groupby" autocomplete="off"> Commander
                             </label>
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='objective','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
+                                <input type="radio" name="grouping" value="objective" data-bind="checked: groupby" autocomplete="off"> Objective
+                                <span data-bind="visible:groupby_opposing()!=''">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>&nbsp;
+                                </span>
+                            </label>
                             <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
                             </label>
@@ -210,6 +253,12 @@
                             </label>
                             <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='commander','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="commander" data-bind="checked: groupby" autocomplete="off"> Commander
+                            </label>
+                            <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='objective','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
+                                <input type="radio" name="grouping" value="objective" data-bind="checked: groupby" autocomplete="off"> Objective
+                                <span data-bind="visible:groupby_opposing()!=''">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>&nbsp;
+                                </span>
                             </label>
                             <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
@@ -275,6 +324,26 @@
                         <span class="badge rounded-pill bg-warning text-dark">
                             <span>RANKED</span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => ranked('')"></i>
+                        </span>
+                        <!-- /ko -->
+                        
+                        <!-- ko if: varsity_only()=="true"-->
+                        <span class="badge rounded-pill bg-primary">
+                            <span>VARSITY</span>
+                            <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => varsity_only('')"></i>
+                        </span>
+                        <!-- /ko -->
+                        
+                        <!-- ko if: firstsecond()=="first"-->
+                        <span class="badge rounded-pill bg-warning text-dark">
+                            <span>FIRST</span>
+                            <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => firstsecond('')"></i>
+                        </span>
+                        <!-- /ko -->
+                        <!-- ko if: firstsecond()=="second"-->
+                        <span class="badge rounded-pill bg-light text-dark">
+                            <span>SECOND</span>
+                            <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => firstsecond('')"></i>
                         </span>
                         <!-- /ko -->
 
