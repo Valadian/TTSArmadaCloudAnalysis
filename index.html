@@ -9,7 +9,7 @@
     <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.0/knockout-min.js'></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-    <script src="analysis.js?version=2021_11_25_0750"></script>
+    <script src="analysis.js?version=2021_11_25_1100"></script>
     <link rel="stylesheet" href="analysis.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@forevolve/bootstrap-dark@1.0.0/dist/css/bootstrap-dark.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.1/font/bootstrap-icons.css">
@@ -40,8 +40,8 @@
             <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
         </div>
         <div class="row mb-10">
-            <div class="col-12 col-xl-3 col-lg-4 col-md-5">
-                <div class="card mt-3">
+            <div class="col-12 col-xl-3 col-lg-5">
+                <div id="filter" class="card mt-3 invisible">
                     <div class="card-header">
                         <i class="bi bi-filter"></i> Filter
                     </span>
@@ -197,8 +197,8 @@
                 </div>
                 
             </div>
-            <div class="col-12 col-xl-9 col-lg-8 col-md-7">
-                <div class="card mt-3">
+            <div class="col-12 col-xl-9 col-lg-7">
+                <div id="groupby" class="card mt-3 invisible">
                     <div class="card-header">
                         <i class="bi bi-diagram-3"></i> Group By
                         <div class="btn-group btn-group-toggle ml-3" data-toggle="buttons">
@@ -213,7 +213,7 @@
                         </button>
                     </div>
                     <div class="card-body collapse show" id="groupby-card-body">
-                        <div class="btn-group btn-group-toggle d-none d-sm-flex" data-toggle="buttons">
+                        <div class="btn-group btn-group-toggle d-none d-md-flex" data-toggle="buttons">
                             <label class="btn btn-outline-light active" data-bind="css: { active: groupby()==''}">
                                 <input type="radio" name="grouping" value="" data-bind="checked: groupby" autocomplete="off" checked> None
                             </label>
@@ -230,7 +230,7 @@
                                 </span>
                             </label>
                         </div>
-                        <div class="btn-group btn-group-toggle d-none d-sm-flex" data-toggle="buttons">
+                        <div class="btn-group btn-group-toggle d-none d-md-flex" data-toggle="buttons">
                             <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='name','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                 <input type="radio" name="grouping" value="name" data-bind="checked: groupby" autocomplete="off"> Players
                             </label>
@@ -249,7 +249,7 @@
                                 </ul>
                             </div>
                         </div>
-                        <div class="btn-group-vertical btn-group-toggle d-block d-sm-none" data-toggle="buttons">
+                        <div class="btn-group-vertical btn-group-toggle d-block d-md-none" data-toggle="buttons">
                             <label class="btn btn-outline-light active" data-bind="css: { active: groupby()==''}">
                                 <input type="radio" name="grouping" value="" data-bind="checked: groupby" autocomplete="off" checked> None
                             </label>
@@ -427,12 +427,25 @@
                                     <th></th>
                                     <th scope="col"><span class="text-danger" data-bind="text:groupby_opposing"></span> Group by: <span data-bind="text: groupby"></span></th>
                                     <th scope="col" class="text-end">
-                                        <span class="d-none d-md-block">Number of Games:</span>
-                                        <span class="d-block d-md-none">#:</span>
+                                        <span class="d-none d-xl-block">Number of Games:</span>
+                                        <span class="d-block d-xl-none">#:</span>
                                     </th>
                                     <th scope="col">
-                                        <span class="d-none d-md-block">Average Points:</span>
-                                        <span class="d-block d-md-none">Pts:</span></th>
+                                        <span class="d-none d-xl-block">Average Points:</span>
+                                        <span class="d-block d-xl-none">Pts:</span>
+                                    </th>
+                                    <th scope="col">
+                                        <span class="d-none d-xl-block">Win %:</span>
+                                        <span class="d-block d-xl-none">Win:</span>
+                                    </th>
+                                    <th scope="col">
+                                        <span class="d-none d-xl-block">Big Win %:</span>
+                                        <span class="d-block d-xl-none">8+:</span>
+                                    </th>
+                                    <th scope="col">
+                                        <span class="d-none d-xl-block">Big Loss %:</span>
+                                        <span class="d-block d-xl-none">&lt;4:</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -440,7 +453,7 @@
                                 <tr>
                                     <td>
                                         <!-- ko if: $root.groupby()=='shiptype'-->
-                                        <button class="btn btn-secondary" data-bind="click: () =>$root.toggle_groupby_subgroup($data),css:{'btn-secondary':JSON.stringify($data[3]) != JSON.stringify($root.subgroup()), 'btn-warning':JSON.stringify($data[3])==JSON.stringify($root.subgroup())}"><i class="bi bi-bar-chart-line-fill"></i></button>          
+                                        <button class="btn btn-secondary" data-bind="click: () =>$root.toggle_groupby_subgroup($data),css:{'btn-secondary':JSON.stringify($data[6]) != JSON.stringify($root.subgroup()), 'btn-warning':JSON.stringify($data[6])==JSON.stringify($root.subgroup())}"><i class="bi bi-bar-chart-line-fill"></i></button>          
                                         <!-- /ko -->
                                         <!-- ko if: $root.groupby()!='shiptype' && $root.groupby()!='squads'-->
                                         <button class="btn btn-secondary" data-bind="click: () => $root.toggle_groupby_filter($data),css:{'btn-secondary':$root.groupby_filter()!=$data[0], 'btn-warning':$root.groupby_filter()==$data[0]}"><i class="bi bi-bar-chart-line-fill"></i></button>          
@@ -461,6 +474,9 @@
                                         <span data-bind="text: $data[2]" style="display:inline-block;width:50px"></span>
                                     </td>
                                     <td data-bind="text: $data[1].toFixed(2), style: { color: $root.calculate_metric_color($data[1])}"></td>
+                                    <td data-bind="text: ($data[3]*100).toFixed(0)+'%', style: { color: $root.calculate_win_color($data[3])}"></td>
+                                    <td data-bind="text: ($data[4]*100).toFixed(0)+'%', style: { color: $root.calculate_bigwin_color($data[4])}"></td>
+                                    <td data-bind="text: ($data[5]*100).toFixed(0)+'%', style: { color: $root.calculate_bigloss_color($data[5])}"></td>
                                 </tr>
                             <!-- /ko-->
                             </tbody>

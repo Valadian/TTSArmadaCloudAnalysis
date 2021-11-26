@@ -375,6 +375,9 @@ function AnalysisModel(df,dfplayers){
                 return []
             }
             var agg = df_groupby(this.df_filtered(),this.shiptype_groupby()).agg({'points':['count','mean']})
+            var win = df_groupby(this.df_filtered(),this.shiptype_groupby()).agg({'i_win':'mean'})['i_win:mean'].values
+            var winbig = df_groupby(this.df_filtered(),this.shiptype_groupby()).agg({'i_winbig':'mean'})['i_winbig:mean'].values
+            var losebig = df_groupby(this.df_filtered(),this.shiptype_groupby()).agg({'i_losebig':'mean'})['i_losebig:mean'].values
             var countmean = agg.values
             var names = agg.$index
             return names.map(function(e, i){
@@ -384,7 +387,8 @@ function AnalysisModel(df,dfplayers){
                 if(description==""){
                     description="all others"
                 }
-                return [description, countmean[i][1],countmean[i][0],pairing];
+                //name, mean, count, win, bigwin, bigloss, data
+                return [description, countmean[i][1],countmean[i][0],win[i],winbig[i],losebig[i],pairing];
             }).sort((a, b) => b[2]- a[2]) //1 = score //2 = count
         } else if (this.groupby()=="squads"){
             let df = this.df_filtered()
@@ -394,7 +398,15 @@ function AnalysisModel(df,dfplayers){
             var ranges = [["None",-1,0],["Minimal (0-40]",0,40],["Light (40-80]",40,80],["Moderate (80-100]",80,100],["Full (100-130]",100,130],["Max (130-134]",130,134]]
             var filters = ranges.map(r => df[this.groupby_opposing()+'squads'].gt(r[1]).and(df[this.groupby_opposing()+'squads'].le(r[2])))
             var dfs = filters.map(filter => df.loc({rows:filter}))
-            return ranges.map((r, i) => [r[0], dfs[i].$index.length>0?dfs[i]['points'].mean():0, dfs[i].$index.length, {[this.groupby_opposing()+'squads']:'('+r[1]+","+r[2]+"]"}])
+            
+            //name, mean, count, win, bigwin, bigloss, data
+            return ranges.map((r, i) => [r[0], 
+                                         dfs[i].$index.length>0?dfs[i]['points'].mean():0, 
+                                         dfs[i].$index.length, 
+                                         dfs[i].$index.length>0?dfs[i]['i_win'].mean():0,
+                                         dfs[i].$index.length>0?dfs[i]['i_winbig'].mean():0,
+                                         dfs[i].$index.length>0?dfs[i]['i_losebig'].mean():0, 
+                                         {[this.groupby_opposing()+'squads']:'('+r[1]+","+r[2]+"]"}])
         } else {
             let df = this.df_filtered()
             if (df.$index.length==0){
@@ -405,12 +417,16 @@ function AnalysisModel(df,dfplayers){
                 key = this.groupby()
             }
             let means = this.df_filtered().groupby([key]).agg({'points':'mean'}).values
+            var win = this.df_filtered().groupby([key]).agg({'i_win':'mean'})['i_win_mean'].values
+            var winbig = this.df_filtered().groupby([key]).agg({'i_winbig':'mean'})['i_winbig_mean'].values
+            var losebig = this.df_filtered().groupby([key]).agg({'i_losebig':'mean'})['i_losebig_mean'].values
             let count_values = this.df_filtered().groupby([key]).agg({'points':'count'})['points_count'].values
             // var win = this.df_filtered().groupby([key]).agg({'win':'mean'})['win_mean'].values
             return means.map(function(e, i) {
                 var pairing = {}
                 pairing[e[0]] = 1
-                return [e[0], e[1], count_values[i], pairing];
+                //name, mean, count, win, bigwin, bigloss, data
+                return [e[0], e[1], count_values[i], win[i],winbig[i],losebig[i],pairing];
             }).sort((a, b) => b[1]- a[1]);
         }
     },this)
@@ -525,6 +541,39 @@ function AnalysisModel(df,dfplayers){
         var g =  parseInt(255*Math.max(0,Math.min(1,  (v-min)/(mid-min)   )))
         return "rgb("+r+","+g+",0)"
     }
+    this.calculate_win_color = function(v){
+        var min = .4 //this.groupby_metrics_min()
+        var mid = .5 //this.groupby_metrics_mid()
+        var max = .6 //this.groupby_metrics_max()
+        if(min==mid){
+            return "rgb(255,255,0)"
+        }
+        var r =  parseInt(255*Math.max(0,Math.min(1,  1-(v-mid)/(max-mid) )))
+        var g =  parseInt(255*Math.max(0,Math.min(1,  (v-min)/(mid-min)   )))
+        return "rgb("+r+","+g+",0)"
+    }
+    this.calculate_bigwin_color = function(v){
+        var min = .1 //this.groupby_metrics_min()
+        var mid = .35 //this.groupby_metrics_mid()
+        var max = .6 //this.groupby_metrics_max()
+        if(min==mid){
+            return "rgb(255,255,0)"
+        }
+        var r =  parseInt(255*Math.max(0,Math.min(1,  1-(v-mid)/(max-mid) )))
+        var g =  parseInt(255*Math.max(0,Math.min(1,  (v-min)/(mid-min)   )))
+        return "rgb("+r+","+g+",0)"
+    }
+    this.calculate_bigloss_color = function(v){
+        var min = .1 //this.groupby_metrics_min()
+        var mid = .2 //this.groupby_metrics_mid()
+        var max = .3 //this.groupby_metrics_max()
+        if(min==mid){
+            return "rgb(255,255,0)"
+        }
+        var g =  parseInt(255*Math.max(0,Math.min(1,  1-(v-mid)/(max-mid) )))
+        var r =  parseInt(255*Math.max(0,Math.min(1,  (v-min)/(mid-min)   )))
+        return "rgb("+r+","+g+",0)"
+    }
     this.numberOfGames = ko.computed(function(){
         return this.df_filtered().$index.length
     },this)
@@ -546,10 +595,10 @@ function AnalysisModel(df,dfplayers){
         return this.df_filtered_bycmdr()['name'].unique().values.sort((a, b) => String(a).localeCompare(String(b), undefined, {sensitivity: 'base'}))
     },this)
     this.toggle_groupby_subgroup = function(data){
-        if (JSON.stringify(this.subgroup()) == JSON.stringify(data[3])){
+        if (JSON.stringify(this.subgroup()) == JSON.stringify(data[6])){
             this.subgroup({})
         } else {
-            this.subgroup(data[3])
+            this.subgroup(data[6])
         }
     }
     this.toggle_groupby_filter = function(data){
@@ -881,6 +930,8 @@ Promise.all([games_promise,players_promise])
 
     document.getElementById("loading").classList.remove("d-flex")
     document.getElementById("loading").classList.add("d-none")
+    document.getElementById("filter").classList.remove("invisible")
+    document.getElementById("groupby").classList.remove("invisible")
     document.getElementById("scores").classList.remove("invisible")
     document.getElementById("statistics").classList.remove("invisible")
     document.getElementById("cardmetrics").classList.remove("invisible")
