@@ -354,7 +354,7 @@
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => firstsecond('')"></i>
                         </span>
                         <!-- /ko -->
-                        
+
                         <!-- ko if: groupby_filter()-->
                         <span class="badge rounded-pill bg-primary">
                             <span data-bind="text: groupby_filter_column()+' = '+groupby_filter()"></span>
@@ -440,10 +440,10 @@
                                 <tr>
                                     <td>
                                         <!-- ko if: $root.groupby()=='shiptype'-->
-                                        <button class="btn btn-secondary" data-bind="click: () =>$root.subgroup($data[3]),css:{'btn-secondary':JSON.stringify($data[3]) != JSON.stringify($root.subgroup()), 'btn-warning':JSON.stringify($data[3])==JSON.stringify($root.subgroup())}"><i class="bi bi-bar-chart-line-fill"></i></button>          
+                                        <button class="btn btn-secondary" data-bind="click: () =>$root.toggle_groupby_subgroup($data),css:{'btn-secondary':JSON.stringify($data[3]) != JSON.stringify($root.subgroup()), 'btn-warning':JSON.stringify($data[3])==JSON.stringify($root.subgroup())}"><i class="bi bi-bar-chart-line-fill"></i></button>          
                                         <!-- /ko -->
                                         <!-- ko if: $root.groupby()!='shiptype' && $root.groupby()!='squads'-->
-                                        <button class="btn btn-secondary" data-bind="click: () =>{$root.groupby_filter_column($root.groupby());$root.groupby_filter($data[0])},css:{'btn-secondary':$root.groupby_filter()!=$data[0], 'btn-warning':$root.groupby_filter()==$data[0]}"><i class="bi bi-bar-chart-line-fill"></i></button>          
+                                        <button class="btn btn-secondary" data-bind="click: () => $root.toggle_groupby_filter($data),css:{'btn-secondary':$root.groupby_filter()!=$data[0], 'btn-warning':$root.groupby_filter()==$data[0]}"><i class="bi bi-bar-chart-line-fill"></i></button>          
                                         <!-- /ko -->
 
                                         
@@ -513,6 +513,13 @@
                                     <td data-bind="text: $data[1].toFixed(2), style: { color: $root.calculate_metric_color($data[1])}"></td>
                                 </tr>
                             <!-- /ko-->
+                            <!-- ko if: cardmetrics_hidden()>0-->
+                                <tr>
+                                    <td colspan="3" class="text-secondary">
+                                        ... <span data-bind="text: cardmetrics_hidden()"></span> Rows are Hidden. Move Slider to right to reveal.
+                                    </td>
+                                </tr>
+                            <!-- /ko-->
                             </tbody>
                         </table>
                     </div>  
@@ -558,6 +565,13 @@
                                         <span data-bind="text: $data[2]" style="display:inline-block;width:50px"></span>
                                     </td>
                                     <td data-bind="text: $data[1].toFixed(2), style: { color: $root.calculate_metric_color($data[1])}"></td>
+                                </tr>
+                            <!-- /ko-->
+                            <!-- ko if: nemesismetric_hidden()>0-->
+                                <tr>
+                                    <td colspan="3" class="text-secondary">
+                                        ... <span data-bind="text: nemesismetric_hidden()"></span> Rows are Hidden. Move Slider to right to reveal.
+                                    </td>
                                 </tr>
                             <!-- /ko-->
                             </tbody>

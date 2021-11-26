@@ -419,7 +419,7 @@ function AnalysisModel(df,dfplayers){
             var count = this.df_filtered().$index.length
             var groups = this.groupby_metrics().length
             if (this.common_toggle_visible()){
-                var mingroupsize = count/groups/2
+                var mingroupsize = 8 //Math.min(8,count/groups/4)
                 return this.groupby_metrics().filter(row => row[2]>=mingroupsize)
             } else {
                 return this.groupby_metrics()
@@ -448,8 +448,11 @@ function AnalysisModel(df,dfplayers){
     this.cardmetrics = ko.observableArray([])
     this.cardmetrics_threshold = ko.observable(0.5)
     this.cardmetrics_filtered = ko.computed(function(){
-        var count = this.df_filtered_bysubgroup().$index.length
+        var count = this.df_plot().$index.length
         return this.cardmetrics().filter(r => (r[2]>=(1-this.cardmetrics_threshold())*count))
+    },this)
+    this.cardmetrics_hidden = ko.computed(function(){
+        return this.cardmetrics().length - this.cardmetrics_filtered().length
     },this)
     this.all_cards = ko.computed(function(){
         return this.df().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3)).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
@@ -462,9 +465,9 @@ function AnalysisModel(df,dfplayers){
         document.getElementById("calc-card-metrics").classList.add("d-none")
         setTimeout(() => {
             cards = this.cards() //this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
-            matches = cards.map(c => this.df_filtered_bysubgroup()[c].gt(0).sum())
+            matches = cards.map(c => this.df_plot()[c].gt(0).sum())
             scores = cards.map(c => {
-                rows = this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()[c].gt(0)})
+                rows = this.df_plot().loc({rows:this.df_plot()[c].gt(0)})
                 if(rows.$index.length>0){
                     return rows['points'].mean()
                 } else {
@@ -481,27 +484,31 @@ function AnalysisModel(df,dfplayers){
     this.nemesismetrics = ko.observableArray([])
     this.nemesis_threshold = ko.observable(90)
     this.nemesismetrics_filtered = ko.computed(function(){
-        if (this.df_filtered_bysubgroup().$index.length==0){
+        if (this.df_plot().$index.length==0){
             return []
         }
-        var mean = this.df_filtered_bysubgroup()['points'].mean()
-        return this.nemesismetrics().filter(r => (r[2]>=(100-this.nemesis_threshold())) && (+r[1]<+mean))
+        // var mean = this.df_plot()['points'].mean()
+        return this.nemesismetrics().filter(r => (r[2]>=(100-this.nemesis_threshold())))// && (+r[1]<+mean))
+    },this)
+    this.nemesismetric_hidden = ko.computed(function(){
+        return this.nemesismetrics().length - this.nemesismetrics_filtered().length
     },this)
     this.nemesis_cards = function(){
         document.getElementById("nemesis-loading").classList.remove("d-none")
         document.getElementById("calc-nemesis").classList.add("d-none")
         setTimeout(() => {
-            cards = this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:"))
-            matches = cards.map(c => this.df_filtered_bysubgroup()[c].gt(0).sum())
+            cards = this.df_plot().$columns.filter(c => c.startsWith("VS:"))
+            matches = cards.map(c => this.df_plot()[c].gt(0).sum())
             scores = cards.map(c => {
-                rows = this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()[c].gt(0)})
+                rows = this.df_plot().loc({rows:this.df_plot()[c].gt(0)})
                 if(rows.$index.length>0){
                     return rows['points'].mean()
                 } else {
                     return 0
                 }
             })
-            cards = cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).sort((a,b)=>a[1]-b[1])
+            var mean = this.df_plot()['points'].mean()
+            cards = cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).filter(c => (+c[1]<+mean)).sort((a,b)=>a[1]-b[1])
             document.getElementById("nemesis-loading").classList.add("d-none")
             document.getElementById("calc-nemesis").classList.remove("d-none")
             this.nemesismetrics(cards)
@@ -538,6 +545,33 @@ function AnalysisModel(df,dfplayers){
     this.players = ko.computed(function(){
         return this.df_filtered_bycmdr()['name'].unique().values.sort((a, b) => String(a).localeCompare(String(b), undefined, {sensitivity: 'base'}))
     },this)
+    this.toggle_groupby_subgroup = function(data){
+        if (JSON.stringify(this.subgroup()) == JSON.stringify(data[3])){
+            this.subgroup({})
+        } else {
+            this.subgroup(data[3])
+        }
+    }
+    this.toggle_groupby_filter = function(data){
+        if(this.groupby()==this.groupby_filter_column() && this.groupby_filter()==data[0]){
+
+            this.groupby_filter_column('');
+            this.groupby_filter('')
+        } else {
+            this.groupby_filter_column(this.groupby());
+            this.groupby_filter(data[0])
+        }
+    }
+    // {
+    //     if($root.groupby()==$root.groupby_filter_column && $root.groupby_filter()==$data[0]){
+
+    //         $root.groupby_filter_column('');
+    //         $root.groupby_filter('')
+    //     } else {
+    //         $root.groupby_filter_column($root.groupby());
+    //         $root.groupby_filter($data[0])
+    //     }
+    // }
     this.pointshist = ko.computed(function(){
         var trace1 = {
             name: 'First',
