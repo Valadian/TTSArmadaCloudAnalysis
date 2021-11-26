@@ -50,6 +50,10 @@ function AnalysisModel(df,dfplayers){
     this.firstsecond = ko.observable("")
     this.groupby = ko.observable("")
     this.groupby_opposing = ko.observable("")
+
+    this.groupby_filter_column = ko.observable("")
+    this.groupby_filter = ko.observable("")
+
     this.subgroup = ko.observable({})
     this.homeurl = ko.computed(function(){
         return location.protocol + '//' + location.host + location.pathname
@@ -114,6 +118,12 @@ function AnalysisModel(df,dfplayers){
         }
         if (this.groupby_opposing()!=''){
             data['groupby_opposing'] = this.groupby_opposing()
+        }
+        if (this.groupby_filter_column()!=''){
+            data['groupby_filter_column'] = this.groupby_filter_column()
+        }
+        if (this.groupby_filter()!=''){
+            data['groupby_filter'] = this.groupby_filter()
         }
         if (this.selectedShips()!='' && this.groupby()=='shiptype'){
             data['selectedShips'] = this.selectedShips()
@@ -316,16 +326,27 @@ function AnalysisModel(df,dfplayers){
         }
         return df
     },this)
+    this.df_filtered_bygroupby_filter =  ko.computed(function(){
+        df = this.df_filtered_bysubgroup()
+        if(df.$index.length>0 && this.groupby_filter()!="" && this.groupby_filter_column()!="" ){
+            filter = df[this.groupby_filter_column()].eq(this.groupby_filter())
+            df = df.loc({rows:filter})
+        }
+        return df
+    },this)
+    this.df_plot = ko.computed(function(){
+        return this.df_filtered_bygroupby_filter()
+    },this)
     this.df_first =  ko.computed(function(){
-        if(this.df_filtered_bysubgroup().$index.length>0){
-            return this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()['first'].eq("True")})
+        if(this.df_plot().$index.length>0){
+            return this.df_plot().loc({rows:this.df_plot()['first'].eq("True")})
         } else{
             return []
         }
     },this)
     this.df_second =  ko.computed(function(){
-        if(this.df_filtered_bysubgroup().$index.length>0){
-            return this.df_filtered_bysubgroup().loc({rows:this.df_filtered_bysubgroup()['first'].ne("True")})
+        if(this.df_plot().$index.length>0){
+            return this.df_plot().loc({rows:this.df_plot()['first'].ne("True")})
         } else{
             return []
         }
@@ -397,8 +418,12 @@ function AnalysisModel(df,dfplayers){
         if(this.stats_filter()==""){
             var count = this.df_filtered().$index.length
             var groups = this.groupby_metrics().length
-            var mingroupsize = count/groups/2
-            return this.groupby_metrics().filter(row => row[2]>=mingroupsize)
+            if (this.common_toggle_visible()){
+                var mingroupsize = count/groups/2
+                return this.groupby_metrics().filter(row => row[2]>=mingroupsize)
+            } else {
+                return this.groupby_metrics()
+            }
         } else {
             return this.groupby_metrics()
         }
