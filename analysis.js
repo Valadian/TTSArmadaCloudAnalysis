@@ -572,6 +572,18 @@ function AnalysisModel(df,dfplayers){
     //         $root.groupby_filter($data[0])
     //     }
     // }
+    this.is_assault_objective = function(name){
+        obj =  ['Advanced Gunnery','Blockade Run','Close-Range Intel Scan','Ion Storm','Marked for Destruction','Most Wanted','Opening Salvo','Precision Strike','Rift Assault','Station Assault','Surprise Attack','Targeting Beacons']
+        return obj.includes(name)
+    }
+    this.is_defense_objective = function(name){
+        obj = ['Abandoned Mining Facility','Asteroid Tactics','Capture the VIP','Contested Outpost','Fighter Ambush','Fire Lanes','Fleet Ambush','Fleet in Being','Hyperspace Assault','Jamming Barrier','Planetary Ion Cannon','Rift Ambush']
+        return obj.includes(name)
+    }
+    this.is_navigation_objective = function(name){
+        obj = ['Dangerous Territory','Doomed Station','Hyperspace Migration','Infested Fields','Intel Sweep','Minefields','Navigational Hazards','Salvage Run','Sensor Net','Solar Corona','Superior Positions','Volatile Deposits']
+        return obj.includes(name)
+    }
     this.pointshist = ko.computed(function(){
         var trace1 = {
             name: 'First',

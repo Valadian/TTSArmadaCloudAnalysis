@@ -449,7 +449,7 @@
                                         
                                     </td>
                                     <td>
-                                        <span data-bind="text: $data[0]" style="white-space:pre-wrap; word-wrap:break-word"></span>
+                                        <span data-bind="text: $data[0], css:{'text-danger':$root.is_assault_objective($data[0]),'text-warning':$root.is_defense_objective($data[0]),'text-info':$root.is_navigation_objective($data[0])}" style="white-space:pre-wrap; word-wrap:break-word"></span>
                                     </td>
                                     <td class="text-end">
                                         <!-- ko if: $data[2]>10 && $data[2]<30-->
