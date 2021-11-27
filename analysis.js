@@ -478,11 +478,11 @@ function AnalysisModel(df,dfplayers){
     this.cards = ko.computed(function(){
         return this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3)).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
     },this)
-    // this.cardmetrics = ko.observableArray([])
-    this.cardmetrics = ko.computed(function(){
-        // document.getElementById("card-metrics-loading").classList.remove("d-none")
-        // document.getElementById("calc-card-metrics").classList.add("d-none")
-        // setTimeout(() => {
+    this.cardmetrics = ko.observableArray([])
+    this.common_cards = function(){
+        document.getElementById("card-metrics-loading").classList.remove("d-none")
+        document.getElementById("calc-card-metrics").classList.add("d-none")
+        setTimeout(() => {
             cards = this.cards() //this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
             matches = cards.map(c => this.df_plot()[c].gt(0).sum())
             scores = cards.map(c => {
@@ -494,12 +494,12 @@ function AnalysisModel(df,dfplayers){
                 }
             })
             cards = cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).sort((a,b)=>b[2]-a[2])
-            //this.cardmetrics(cards)
-            // document.getElementById("card-metrics-loading").classList.add("d-none")
-            // document.getElementById("calc-card-metrics").classList.remove("d-none")
-            return cards
-        // }, 100)
-    },this)
+            this.cardmetrics(cards)
+            document.getElementById("card-metrics-loading").classList.add("d-none")
+            document.getElementById("calc-card-metrics").classList.remove("d-none")
+            // return cards
+        }, 100)
+    }
     this.cardmetrics_threshold = ko.observable(0.5)
     this.cardmetrics_filtered = ko.computed(function(){
         var count = this.df_plot().$index.length
@@ -508,11 +508,11 @@ function AnalysisModel(df,dfplayers){
     this.cardmetrics_hidden = ko.computed(function(){
         return this.cardmetrics().length - this.cardmetrics_filtered().length
     },this)
-    // this.nemesismetrics = ko.observableArray([])
-    this.nemesismetrics = ko.computed(function(){
-        // document.getElementById("nemesis-loading").classList.remove("d-none")
-        // document.getElementById("calc-nemesis").classList.add("d-none")
-        // setTimeout(() => {
+    this.nemesismetrics = ko.observableArray([])
+    this.nemesis_cards = function(){
+        document.getElementById("nemesis-loading").classList.remove("d-none")
+        document.getElementById("calc-nemesis").classList.add("d-none")
+        setTimeout(() => {
             cards = this.df_plot().$columns.filter(c => c.startsWith("VS:"))
             matches = cards.map(c => this.df_plot()[c].gt(0).sum())
             scores = cards.map(c => {
@@ -525,11 +525,13 @@ function AnalysisModel(df,dfplayers){
             })
             var mean = this.df_plot()['points'].mean()
             cards = cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).filter(c => (+c[1]<+mean)).sort((a,b)=>a[1]-b[1])
-            // document.getElementById("nemesis-loading").classList.add("d-none")
-            // document.getElementById("calc-nemesis").classList.remove("d-none")
-            return cards
-        // }, 100)
-    },this)
+            this.nemesismetrics(cards)
+            document.getElementById("nemesis-loading").classList.add("d-none")
+            document.getElementById("calc-nemesis").classList.remove("d-none")
+            
+            // return cards
+        }, 100)
+    }
     this.nemesis_threshold = ko.observable(90)
     this.nemesismetrics_filtered = ko.computed(function(){
         if (this.df_plot().$index.length==0){
