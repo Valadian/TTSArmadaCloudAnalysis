@@ -1,11 +1,68 @@
+class StandaloneSeries{
+    constructor(data){
+        this.values = data
+    }
+    or(other, params) {
+        let othervalues = other
+        if (other instanceof StandaloneSeries || other instanceof Series){
+            othervalues = other.values
+        }
+        let isscalar = !Array.isArray(othervalues)
+        if (params && params['inplace']){
+            for (var i in this.values){
+                this.values[i] = this.values[i] || (isscalar?othervalues:othervalues[i])
+            }
+            return this 
+        } else {
+            return new StandaloneSeries(this.values.map((e,i)=> e||othervalues[i]))
+        }
+    }
+    and(other, params) {
+        let othervalues = other
+        if (other instanceof StandaloneSeries || other instanceof Series){
+            othervalues = other.values
+        }
+        let isscalar = !Array.isArray(othervalues)
+        if (params && params['inplace']){
+            for (var i in this.values){
+                this.values[i] = this.values[i] && (isscalar?othervalues:othervalues[i])
+            }
+            return this 
+        } else {
+            return new StandaloneSeries(this.values.map((e,i)=> e&&othervalues[i]))
+        }
+    }
+    apply(func, params){
+        let othervalues = other
+        if (other instanceof StandaloneSeries || other instanceof Series){
+            othervalues = other.values
+        }
+        if (params && params['inplace']){
+            for (var i in this.values){
+                this.values[i] = func(this.values[i])
+            }
+            return this 
+        } else {
+            return new StandaloneSeries(this.values.map(func))
+        }
+    }
+    sum(){
+        return this.values.reduce((a, b) => (a + b),0)
+    }
+}
 class Series {
     constructor(data,idx, i_col,skip_dtype_determination){
         this._i_col = i_col
         this._all_values = data
         this._values_cached = null
         this._index = idx
-        if(!skip_dtype_determination && this.areNumbers()){
-            this.astype(Number)
+        if(!skip_dtype_determination){
+            if (this._areNumbers()){
+                this.astype(Number)
+            }
+            if (this._areBools()){
+                this.astype((v)=>v=="True")
+            }
         }
     }
     get values(){
@@ -14,17 +71,70 @@ class Series {
         }
         return this._values_cached
     }
+    *uncached_values(){
+        for(var i of this._index){
+            yield this._all_values[i][this._i_col]
+        }
+    }
+    apply(func){
+        return new StandaloneSeries(this.values.map(func))
+    }
+    not(){
+        return new StandaloneSeries(this.values.map(v => !v))
+    }
     eq(comp){
-        return this.values.map(v=>v==comp)
+        return new StandaloneSeries(this.values.map(v => v == comp))
+    }
+    ge(comp){
+        return new StandaloneSeries(this.values.map(v => v >= comp))
+    }
+    gt(comp){
+        return new StandaloneSeries(this.values.map(v => v > comp))
+    }
+    le(comp){
+        return new StandaloneSeries(this.values.map(v => v <= comp))
+    }
+    lt(comp){
+        return new StandaloneSeries(this.values.map(v => v < comp))
     }
     sum(){
-        return this.values.reduce((a, b) => (a + b))
+        return this.values.reduce((a, b) => (a + b),0)
+    }
+    count(){
+        return this._index.length
     }
     mean(){
-        return this.values.reduce((a, b) => (a + b)) / this.values.length;
+        return this.values.reduce((a, b) => (a + b),0) / this.values.length;
     }
-    areNumbers(){
-        return this._index.map(i => this._all_values[i][this._i_col]).reduce((a,b) => a && !isNaN(Number(b)), true)
+    unique(){
+        return new StandaloneSeries(this.values.filter((v, i, a) => a.indexOf(v) === i))
+    }
+    isin(searchArray){
+        return new StandaloneSeries(this.values.map((v)=> searchArray.includes(v)))
+    }
+    includes(searchElement){
+        for (var v of this.uncached_values()){
+            if (v==searchElement){
+                return true
+            }
+        }
+        return false
+    }
+    _areNumbers(){
+        for (var v of this.uncached_values()){
+            if (isNaN(Number(v))){
+                return false
+            }
+        }
+        return true
+    }
+    _areBools(){
+        for (var v of this.uncached_values()){
+            if (v!="True" && v!="False" && v!==true && v!==false){
+                return false
+            }
+        }
+        return true
     }
     astype(type){
         for(var i of this._index){
@@ -37,12 +147,16 @@ class Series {
         this._values_cached = null
     }
     loc(params){
-        if(params.inplace){
-            this._index = this._index.filter((e,i) => params.rows[i])
+        filter = params.rows
+        if (filter instanceof StandaloneSeries || filter instanceof Series){
+            filter = filter.values
+        }
+        if(params['inplace']){
+            this._index = this._index.filter((e,i) => filter[i])
             this._values_cached = null
         } else {
             copy = this.clone()
-            copy.loc({rows:params.rows,inplace:true})
+            copy.loc({rows:filter,inplace:true})
         }
     }
     clone(){
@@ -55,21 +169,21 @@ class Series {
 class DataFrame {
     constructor(data, columns, idx, col_idx, skip_dtype_determination) {
         this.$rows = data
-        this.columns = columns
+        this.$columns = columns
         if(col_idx==null){
-            this.$col_index = Object.assign({}, ...this.columns.map((e,i) => ({[e]: i})))
+            this.$col_index = Object.assign({}, ...this.$columns.map((e,i) => ({[e]: i})))
         } else {
             this.$col_index = col_idx
         }
 
         if(idx==null){
-            this.index = data.map((e,i) => i)
+            this.$index = data.map((e,i) => i)
         } else {
-            this.index = idx
+            this.$index = idx
         }
-        this.$cols = this.columns.map((e,i) => new Series(data,this.index,i,skip_dtype_determination))
-        for(var i in this.columns){
-            let key = this.columns[i]
+        this.$cols = this.$columns.map((e,i) => new Series(data,this.$index,i,skip_dtype_determination))
+        for(var i in this.$columns){
+            let key = this.$columns[i]
             this[key] = this.$cols[i]
         }
         this.$rows_filtered = null
@@ -93,13 +207,17 @@ class DataFrame {
     //     this._filtered = false
     // }
     loc(params){
-        let tgt = this
-        if(!params.inplace){
-            tgt = new DataFrame(this.$rows,this.columns, this.index, this.$col_index, true)
+        let filter = params.rows
+        if (filter instanceof StandaloneSeries || filter instanceof Series){
+            filter = filter.values
         }
-        tgt.index = tgt.index.filter((e,i) => params.rows[i])
+        let tgt = this
+        if(!params['inplace']){
+            tgt = new DataFrame(this.$rows,this.$columns, this.$index, this.$col_index, true)
+        }
+        tgt.$index = tgt.$index.filter((e,i) => filter[i])
         for(var col of tgt.$cols){
-            col._set_index(tgt.index)
+            col._set_index(tgt.$index)
         }
         tgt.$rows_filtered = null
         return tgt
@@ -107,16 +225,74 @@ class DataFrame {
     get values(){
         if(this._filtered){
             if(this.$rows_filtered==null){
-                this.$rows_filtered = this.index.map(i => this.$rows[i])
+                this.$rows_filtered = this.$index.map(i => this.$rows[i])
             }
             return this.$rows_filtered
         } else {
             return this.$rows
         }
     }
+    cols(){
+        return this.$cols
+    }
+    clone(){
+        return new DataFrame(this.$rows,this.$columns, this.$index, this.$col_index, true)
+    }
+    groupby(keys){
+        if(!Array.isArray(keys)){
+            keys = [keys]
+        }
+        let results = {}
+        for(var key of keys){
+            results[key] = {}
+            results[key].unique = []
+            if (!this.$columns.includes(key)){
+                console.error("'"+key+"' not in dataframe!")
+            } else {
+                for(var val of this[key].unique().values){
+                    let map = {}
+                    map[key]=val
+                    results[key].unique.push(map)
+                }
+            }
+        }
+        let pairings = null
+        for(var key of keys){
+            if(pairings == null){
+                pairings = results[key].unique
+            } else {
+                pairings = pairings.flatMap(map => {
+                    //return {...map, ...results[key].unique}
+                    return results[key].unique.map(othermap => {return {...map, ...othermap};})
+                })
+            }
+        }
+        let groupbyobj = new GroupByObj([],this)//{groups: [],df: this}
+        
+        for(var pairing of pairings){
+            let filter = this['points'].apply((x)=>true) //all true
+            for(var key in pairing){
+                filter = filter.and(this[key].eq(pairing[key]),{inplace:true})
+            }
+            let matches = this.loc({rows:filter})
+            if(matches.$index.length>0){
+                let group = {}
+                if(keys.length==1){
+                    group.name = Object.values(pairing)[0]
+                } else {
+                    group.name = JSON.stringify(pairing)
+                }
+                group.filter = filter
+                group.count = matches.$index.length
+                groupbyobj.groups.push(group)
+            }
+        }
+        return groupbyobj
+        // console.log(pairings)
+    }
     
     static read_csv_async(path){
-        return fetch("2021_11_24_ttsarmada_cloud.csv", { method: 'get' }).then((resp) => resp.text()).then(text =>{
+        return fetch(path, { method: 'get' }).then((resp) => resp.text()).then(text =>{
             let parsed = Papa.parse(text, {
                 skipEmptyLines: true
             })
@@ -125,5 +301,37 @@ class DataFrame {
             let data = parsed.data.slice(1).map(r => r.slice(1))
             return new DataFrame(data, columns)
         })
+    }
+}
+class GroupByObj{
+    constructor(groups, df){
+        this.groups = groups
+        this.df = df
+    }
+    agg(aggdict){
+        let index = []
+        let rows = {}
+        let cols = []
+        for(var group of this.groups){
+            index.push(group.name)
+            let row = []
+            for(var key in aggdict){
+                if (!Array.isArray(aggdict[key])){
+                    aggdict[key] = [aggdict[key]]
+                }
+                for(var metric_func of aggdict[key]){
+                    var filtered = this.df.loc({rows:group.filter})
+                    var column = filtered[key]
+                    var metric = column[metric_func]()
+                    //row[key+":"+metric_func]=metric
+                    row.push(metric)
+                    if(!cols.includes(key+":"+metric_func)){
+                        cols.push(key+":"+metric_func)
+                    }
+                }
+            }
+            rows[group.name] = row
+        }
+        return new DataFrame(rows, cols, index)//TODO: string index is a problem
     }
 }

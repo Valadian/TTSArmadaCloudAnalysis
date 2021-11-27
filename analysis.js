@@ -14,18 +14,18 @@ function AnalysisModel(df,dfplayers){
     this.varsity_only = ko.observable('')
     this.stats_filter = ko.observable('')
     this.dfplayers_filtered = ko.computed(function(){
-        df = this.dfplayers()
-        exp_filt = df['games'].ge(+this.min_games())
-        weak_filt = df['elo'].ge(+this.min_elo())
-        win_filt = df['elo'].gt(+this.elo_exception())
-        return df.loc({rows:(exp_filt.or(win_filt)).and(weak_filt)})
+        let df = this.dfplayers()
+        let exp_filt = df['games'].ge(+this.min_games())
+        let weak_filt = df['elo'].ge(+this.min_elo())
+        let win_filt = df['elo'].gt(+this.elo_exception())
+        return df.loc({rows:(exp_filt.or(win_filt,{inplace:true})).and(weak_filt,{inplace:true})})
     },this)
     this.df_varsity = ko.computed(function(){
-        df = this.df()
-        varsity_players = this.dfplayers_filtered()['name'].values
-        p1 = df['name'].apply(n => varsity_players.includes(n))
-        p2 = df['opposing_name'].apply(n => varsity_players.includes(n))
-        return df.loc({rows:p1.and(p2)})
+        let df = this.df()
+        let varsity_players = this.dfplayers_filtered()['name'].values
+        let p1 = df['name'].isin(varsity_players)
+        let p2 = df['opposing_name'].isin(varsity_players)
+        return df.loc({rows:p1.and(p2,{inplace:true})})
     },this)
     this.commanders = ko.observableArray([])
     this.factions = ko.observableArray([])
@@ -180,10 +180,11 @@ function AnalysisModel(df,dfplayers){
         if (selectedFactions.length==0){
             this.commanders(dfgames['commander'].unique().values.sort())
         } else {
-            filter = dfgames['faction'].isna()
-            for( var i in selectedFactions){
-                filter = filter.or(dfgames['faction'].eq(selectedFactions[i]))
-            }
+            // filter = dfgames['faction'].isna()
+            // for( var i in selectedFactions){
+            //     filter = filter.or(dfgames['faction'].eq(selectedFactions[i]),{inplace:true})
+            // }
+            filter = dfgames['faction'].isin(this.selectedFactions())
             this.commanders(dfgames.loc({rows:filter})['commander'].unique().values.sort())
         }
         this.selectedCommanders([])
@@ -195,10 +196,11 @@ function AnalysisModel(df,dfplayers){
             filtered = this.df_varsity()
         }
         if (this.selectedFactions().length>0){
-            filter = filtered['faction'].isna()
-            for( var i in this.selectedFactions()){
-                filter = filter.or(filtered['faction'].eq(this.selectedFactions()[i]))
-            }
+            // filter = filtered['faction'].isna()
+            // for( var i in this.selectedFactions()){
+            //     filter = filter.or(filtered['faction'].eq(this.selectedFactions()[i]))
+            // }
+            filter = filtered['faction'].isin(this.selectedFactions())
             filtered = filtered.loc({rows:filter})
         }
         return filtered
@@ -206,10 +208,11 @@ function AnalysisModel(df,dfplayers){
     this.df_filtered_bycmdr = ko.computed(function(){
         filtered = this.df_filtered_byfaction()
         if (this.selectedCommanders().length>0){
-            filter = filtered['commander'].isna()
-            for( var i in this.selectedCommanders()){
-                filter = filter.or(filtered['commander'].eq(this.selectedCommanders()[i]))
-            }
+            // filter = filtered['commander'].isna()
+            // for( var i in this.selectedCommanders()){
+            //     filter = filter.or(filtered['commander'].eq(this.selectedCommanders()[i]))
+            // }
+            filter = filtered['commander'].isin(this.selectedCommanders())
             filtered = filtered.loc({rows:filter})
         }
         return filtered
@@ -217,12 +220,14 @@ function AnalysisModel(df,dfplayers){
     this.df_filtered_bytournament = ko.computed(function(){
         filtered = this.df_filtered_bycmdr()
         if (filtered.$index.length>0 && this.selectedTournamentCodes().length>0){
-            filter = new dfd.Series(filtered.values.map(r=>false))
+            // filter = new dfd.Series(filtered.values.map(r=>false))
             // filter = filtered['tournamentCode'].isna()
-            for( var i in this.selectedTournamentCodes()){
+            // for( var i in this.selectedTournamentCodes()){
                 
-                filter = filter.or(new dfd.Series(filtered.loc({columns:['tournamentCode']}).values.map(r=>r[0]==this.selectedTournamentCodes()[i])))
-            }
+            //     filter = filter.or(new dfd.Series(filtered.loc({columns:['tournamentCode']}).values.map(r=>r[0]==this.selectedTournamentCodes()[i])))
+            // }
+            
+            filter = filtered['tournamentCode'].isin(this.selectedTournamentCodes())
             filtered = filtered.loc({rows:filter})
         }
         return filtered
@@ -230,10 +235,11 @@ function AnalysisModel(df,dfplayers){
     this.df_filtered_byplayer = ko.computed(function(){
         filtered = this.df_filtered_bytournament()
         if (this.selectedPlayers().length>0){
-            filter = filtered['name'].isna()
-            for( var i in this.selectedPlayers()){
-                filter = filter.or(filtered['name'].eq(this.selectedPlayers()[i]))
-            }
+            // filter = filtered['name'].isna()
+            // for( var i in this.selectedPlayers()){
+            //     filter = filter.or(filtered['name'].eq(this.selectedPlayers()[i]))
+            // }
+            filter = filtered['name'].isin(this.selectedPlayers())
             filtered = filtered.loc({rows:filter})
         }
         return filtered
@@ -241,54 +247,54 @@ function AnalysisModel(df,dfplayers){
     this.df_filtered_bycard = ko.computed(function(){
         filtered = this.df_filtered_byplayer()
         if (this.selectedCards().length>0){
-            filter = filtered['name'].isna()
+            filter = filtered['name'].apply((v)=>false)
             if(this.selectedcards_not()){
                 if (this.selectedcards_op()=="and"){
                     for( var card of this.selectedCards()){
-                        filter = filter.or(filtered[card].eq(0))
+                        filter = filter.or(filtered[card].eq(0),{inplace:true})
                     }
                 } else {
-                    filter = filter.or(true)
+                    filter = filter.or(true,{inplace:true})
                     for( var card of this.selectedCards()){
-                        filter = filter.and(filtered[card].eq(0))
+                        filter = filter.and(filtered[card].eq(0),{inplace:true})
                     }
                 }
             } else {
                 if (this.selectedcards_op()=="or"){
                     for( var card of this.selectedCards()){
-                        filter = filter.or(filtered[card].gt(0))
+                        filter = filter.or(filtered[card].gt(0),{inplace:true})
                     }
                 } else {
-                    filter = filter.or(true)
+                    filter = filter.or(true,{inplace:true})
                     for( var card of this.selectedCards()){
-                        filter = filter.and(filtered[card].gt(0))
+                        filter = filter.and(filtered[card].gt(0),{inplace:true})
                     }
                 }
             }
             filtered = filtered.loc({rows:filter})
         }
         if (this.opposingCards().length>0){
-            filter = filtered['name'].isna()
+            filter = filtered['name'].apply((v)=>false)
             if(this.opposingcards_not()){
                 if (this.opposingcards_op()=="and"){
                     for( var card of this.opposingCards()){
-                        filter = filter.or(filtered["VS:"+card].eq(0))
+                        filter = filter.or(filtered["VS:"+card].eq(0),{inplace:true})
                     }
                 } else {
-                    filter = filter.or(true)
+                    filter = filter.or(true,{inplace:true})
                     for( var card of this.opposingCards()){
-                        filter = filter.and(filtered["VS:"+card].eq(0))
+                        filter = filter.and(filtered["VS:"+card].eq(0),{inplace:true})
                     }
                 }
             } else {
                 if (this.opposingcards_op()=="or"){
                     for( var card of this.opposingCards()){
-                        filter = filter.or(filtered["VS:"+card].gt(0))
+                        filter = filter.or(filtered["VS:"+card] /*.gt(0)*/,{inplace:true})
                     }
                 } else {
                     filter = filter.or(true)
                     for( var card of this.opposingCards()){
-                        filter = filter.and(filtered["VS:"+card].gt(0))
+                        filter = filter.and(filtered["VS:"+card] /*.gt(0)*/,{inplace:true})
                     }
                 }
             }
@@ -302,16 +308,16 @@ function AnalysisModel(df,dfplayers){
             return filtered
         }
         if(this.ranked()=="true"){
-            filtered = filtered.loc({rows:filtered['ranked'].eq("True")})
+            filtered = filtered.loc({rows:filtered['ranked']/*.eq("True")*/})
         }
         if (filtered.$index.length==0){
             return filtered
         }
         if(this.firstsecond()=="first"){
-            filtered = filtered.loc({rows:filtered['first'].eq("True")})
+            filtered = filtered.loc({rows:filtered['first']/*.eq("True")*/})
         }
         if(this.firstsecond()=="second"){
-            filtered = filtered.loc({rows:filtered['first'].eq("False")})
+            filtered = filtered.loc({rows:filtered['first'].not()/*.eq("False")*/})
         }
         return filtered
     },this)
@@ -320,7 +326,7 @@ function AnalysisModel(df,dfplayers){
         if(df.$index.length>0 && Object.keys(this.subgroup()).length>0){
             filter = df['points'].apply((x)=>true) //all true
             for(var key in this.subgroup()){
-                filter = filter.and(df[key].eq(this.subgroup()[key]))
+                filter = filter.and(df[key].eq(this.subgroup()[key]),{inplace:true})
             }
             df = df.loc({rows:filter})
         }
@@ -339,14 +345,14 @@ function AnalysisModel(df,dfplayers){
     },this)
     this.df_first =  ko.computed(function(){
         if(this.df_plot().$index.length>0){
-            return this.df_plot().loc({rows:this.df_plot()['first'].eq("True")})
+            return this.df_plot().loc({rows:this.df_plot()['first']/*.eq("True")*/})
         } else{
             return []
         }
     },this)
     this.df_second =  ko.computed(function(){
         if(this.df_plot().$index.length>0){
-            return this.df_plot().loc({rows:this.df_plot()['first'].ne("True")})
+            return this.df_plot().loc({rows:this.df_plot()['first'].not()/*.ne("True")*/})
         } else{
             return []
         }
@@ -374,10 +380,13 @@ function AnalysisModel(df,dfplayers){
             if (this.selectedShips()==""){
                 return []
             }
-            var agg = df_groupby(this.df_filtered(),this.shiptype_groupby()).agg({'points':['count','mean']})
-            var win = df_groupby(this.df_filtered(),this.shiptype_groupby()).agg({'i_win':'mean'})['i_win:mean'].values
-            var winbig = df_groupby(this.df_filtered(),this.shiptype_groupby()).agg({'i_winbig':'mean'})['i_winbig:mean'].values
-            var losebig = df_groupby(this.df_filtered(),this.shiptype_groupby()).agg({'i_losebig':'mean'})['i_losebig:mean'].values
+            // var agg = this.df_filtered().groupby(this.shiptype_groupby()).agg({'points':['count','mean']})
+            // var win = this.df_filtered().groupby(this.shiptype_groupby()).agg({'win':'mean'})['win:mean'].values
+            // var winbig = this.df_filtered().groupby(this.shiptype_groupby()).agg({'winbig':'mean'})['winbig:mean'].values
+            // var losebig = this.df_filtered().groupby(this.shiptype_groupby()).agg({'losebig':'mean'})['losebig:mean'].values
+            
+            agg_dict = {'points':['count','mean'],'win':'mean','winbig':'mean','losebig':'mean'}
+            var agg = this.df_filtered().groupby(this.shiptype_groupby()).agg(agg_dict)
             var countmean = agg.values
             var names = agg.$index
             return names.map(function(e, i){
@@ -388,7 +397,7 @@ function AnalysisModel(df,dfplayers){
                     description="all others"
                 }
                 //name, mean, count, win, bigwin, bigloss, data
-                return [description, countmean[i][1],countmean[i][0],win[i],winbig[i],losebig[i],pairing];
+                return [description, agg['points:mean'].values[i], agg['points:count'].values[i], agg['win:mean'].values[i],agg['winbig:mean'].values[i],agg['losebig:mean'].values[i],pairing];
             }).sort((a, b) => b[2]- a[2]) //1 = score //2 = count
         } else if (this.groupby()=="squads"){
             let df = this.df_filtered()
@@ -396,16 +405,16 @@ function AnalysisModel(df,dfplayers){
                 return []
             }
             var ranges = [["None",-1,0],["Minimal (0-40]",0,40],["Light (40-80]",40,80],["Moderate (80-100]",80,100],["Full (100-130]",100,130],["Max (130-134]",130,134]]
-            var filters = ranges.map(r => df[this.groupby_opposing()+'squads'].gt(r[1]).and(df[this.groupby_opposing()+'squads'].le(r[2])))
+            var filters = ranges.map(r => df[this.groupby_opposing()+'squads'].gt(r[1]).and(df[this.groupby_opposing()+'squads'].le(r[2]),{inplace:true}))
             var dfs = filters.map(filter => df.loc({rows:filter}))
             
             //name, mean, count, win, bigwin, bigloss, data
             return ranges.map((r, i) => [r[0], 
                                          dfs[i].$index.length>0?dfs[i]['points'].mean():0, 
                                          dfs[i].$index.length, 
-                                         dfs[i].$index.length>0?dfs[i]['i_win'].mean():0,
-                                         dfs[i].$index.length>0?dfs[i]['i_winbig'].mean():0,
-                                         dfs[i].$index.length>0?dfs[i]['i_losebig'].mean():0, 
+                                         dfs[i].$index.length>0?dfs[i]['win'].mean():0,
+                                         dfs[i].$index.length>0?dfs[i]['winbig'].mean():0,
+                                         dfs[i].$index.length>0?dfs[i]['losebig'].mean():0, 
                                          {[this.groupby_opposing()+'squads']:'('+r[1]+","+r[2]+"]"}])
         } else {
             let df = this.df_filtered()
@@ -416,17 +425,19 @@ function AnalysisModel(df,dfplayers){
             if(this.groupby()=="objective"){
                 key = this.groupby()
             }
-            let means = this.df_filtered().groupby([key]).agg({'points':'mean'}).values
-            var win = this.df_filtered().groupby([key]).agg({'i_win':'mean'})['i_win_mean'].values
-            var winbig = this.df_filtered().groupby([key]).agg({'i_winbig':'mean'})['i_winbig_mean'].values
-            var losebig = this.df_filtered().groupby([key]).agg({'i_losebig':'mean'})['i_losebig_mean'].values
-            let count_values = this.df_filtered().groupby([key]).agg({'points':'count'})['points_count'].values
+            agg_dict = {'points':['count','mean'],'win':'mean','winbig':'mean','losebig':'mean'}
+            let agg = this.df_filtered().groupby(key).agg(agg_dict)
+            // let means = this.df_filtered().groupby([key]).agg({'points':'mean'}).values
+            // var win = this.df_filtered().groupby([key]).agg({'i_win':'mean'})['i_win_mean'].values
+            // var winbig = this.df_filtered().groupby([key]).agg({'i_winbig':'mean'})['i_winbig_mean'].values
+            // var losebig = this.df_filtered().groupby([key]).agg({'i_losebig':'mean'})['i_losebig_mean'].values
+            // let count_values = this.df_filtered().groupby([key]).agg({'points':'count'})['points_count'].values
             // var win = this.df_filtered().groupby([key]).agg({'win':'mean'})['win_mean'].values
-            return means.map(function(e, i) {
+            return agg.$index.map(function(e, i) {
                 var pairing = {}
-                pairing[e[0]] = 1
+                pairing[e] = 1
                 //name, mean, count, win, bigwin, bigloss, data
-                return [e[0], e[1], count_values[i], win[i],winbig[i],losebig[i],pairing];
+                return [e, agg['points:mean'].values[i], agg['points:count'].values[i], agg['win:mean'].values[i],agg['winbig:mean'].values[i],agg['losebig:mean'].values[i],pairing];
             }).sort((a, b) => b[1]- a[1]);
         }
     },this)
@@ -461,25 +472,17 @@ function AnalysisModel(df,dfplayers){
     this.groupby_metrics_mid = ko.computed(function(){
         return (this.groupby_metrics_max()+this.groupby_metrics_min())/2
     }, this)
-    this.cardmetrics = ko.observableArray([])
-    this.cardmetrics_threshold = ko.observable(0.5)
-    this.cardmetrics_filtered = ko.computed(function(){
-        var count = this.df_plot().$index.length
-        return this.cardmetrics().filter(r => (r[2]>=(1-this.cardmetrics_threshold())*count))
-    },this)
-    this.cardmetrics_hidden = ko.computed(function(){
-        return this.cardmetrics().length - this.cardmetrics_filtered().length
-    },this)
     this.all_cards = ko.computed(function(){
         return this.df().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3)).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
     },this)
     this.cards = ko.computed(function(){
         return this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3)).sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
     },this)
-    this.common_cards = function(){
-        document.getElementById("card-metrics-loading").classList.remove("d-none")
-        document.getElementById("calc-card-metrics").classList.add("d-none")
-        setTimeout(() => {
+    // this.cardmetrics = ko.observableArray([])
+    this.cardmetrics = ko.computed(function(){
+        // document.getElementById("card-metrics-loading").classList.remove("d-none")
+        // document.getElementById("calc-card-metrics").classList.add("d-none")
+        // setTimeout(() => {
             cards = this.cards() //this.df_filtered_bysubgroup().$columns.filter(c => c.startsWith("VS:")).map(c => c.substring(3))
             matches = cards.map(c => this.df_plot()[c].gt(0).sum())
             scores = cards.map(c => {
@@ -492,27 +495,24 @@ function AnalysisModel(df,dfplayers){
             })
             cards = cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).sort((a,b)=>b[2]-a[2])
             //this.cardmetrics(cards)
-            document.getElementById("card-metrics-loading").classList.add("d-none")
-            document.getElementById("calc-card-metrics").classList.remove("d-none")
-            this.cardmetrics(cards)
-        }, 100)
-    }//,this)
-    this.nemesismetrics = ko.observableArray([])
-    this.nemesis_threshold = ko.observable(90)
-    this.nemesismetrics_filtered = ko.computed(function(){
-        if (this.df_plot().$index.length==0){
-            return []
-        }
-        // var mean = this.df_plot()['points'].mean()
-        return this.nemesismetrics().filter(r => (r[2]>=(100-this.nemesis_threshold())))// && (+r[1]<+mean))
+            // document.getElementById("card-metrics-loading").classList.add("d-none")
+            // document.getElementById("calc-card-metrics").classList.remove("d-none")
+            return cards
+        // }, 100)
     },this)
-    this.nemesismetric_hidden = ko.computed(function(){
-        return this.nemesismetrics().length - this.nemesismetrics_filtered().length
+    this.cardmetrics_threshold = ko.observable(0.5)
+    this.cardmetrics_filtered = ko.computed(function(){
+        var count = this.df_plot().$index.length
+        return this.cardmetrics().filter(r => (r[2]>=(1-this.cardmetrics_threshold())*count))
     },this)
-    this.nemesis_cards = function(){
-        document.getElementById("nemesis-loading").classList.remove("d-none")
-        document.getElementById("calc-nemesis").classList.add("d-none")
-        setTimeout(() => {
+    this.cardmetrics_hidden = ko.computed(function(){
+        return this.cardmetrics().length - this.cardmetrics_filtered().length
+    },this)
+    // this.nemesismetrics = ko.observableArray([])
+    this.nemesismetrics = ko.computed(function(){
+        // document.getElementById("nemesis-loading").classList.remove("d-none")
+        // document.getElementById("calc-nemesis").classList.add("d-none")
+        // setTimeout(() => {
             cards = this.df_plot().$columns.filter(c => c.startsWith("VS:"))
             matches = cards.map(c => this.df_plot()[c].gt(0).sum())
             scores = cards.map(c => {
@@ -525,11 +525,22 @@ function AnalysisModel(df,dfplayers){
             })
             var mean = this.df_plot()['points'].mean()
             cards = cards.map((e, i) => [e, scores[i],matches[i]]).filter(c => c[2]>0).filter(c => (+c[1]<+mean)).sort((a,b)=>a[1]-b[1])
-            document.getElementById("nemesis-loading").classList.add("d-none")
-            document.getElementById("calc-nemesis").classList.remove("d-none")
-            this.nemesismetrics(cards)
-        }, 100)
-    }
+            // document.getElementById("nemesis-loading").classList.add("d-none")
+            // document.getElementById("calc-nemesis").classList.remove("d-none")
+            return cards
+        // }, 100)
+    },this)
+    this.nemesis_threshold = ko.observable(90)
+    this.nemesismetrics_filtered = ko.computed(function(){
+        if (this.df_plot().$index.length==0){
+            return []
+        }
+        // var mean = this.df_plot()['points'].mean()
+        return this.nemesismetrics().filter(r => (r[2]>=(100-this.nemesis_threshold())))// && (+r[1]<+mean))
+    },this)
+    this.nemesismetric_hidden = ko.computed(function(){
+        return this.nemesismetrics().length - this.nemesismetrics_filtered().length
+    },this)
     this.calculate_metric_color = function(v){
         var min = 4.5 //this.groupby_metrics_min()
         var mid = 5.5 //this.groupby_metrics_mid()
@@ -778,77 +789,82 @@ ship_filters = {
 
 }
 
-df_groupby = function(df, keys){
-    results = {}
-    for(var key of keys){
-        results[key] = {}
-        results[key].unique = []
-        if (!(key in df)){
-            console.error("'"+key+"' not in dataframe!")
-        } else {
-            for(val of df[key].unique().values){
-                map = {}
-                map[key]=val
-                results[key].unique.push(map)
-            }
-        }
-    }
-    pairings = null
-    for(var key of keys){
-        if(pairings == null){
-            pairings = results[key].unique
-        } else {
-            pairings = pairings.flatMap(map => {
-                //return {...map, ...results[key].unique}
-                return results[key].unique.map(othermap => {return {...map, ...othermap};})
-            })
-        }
-    }
-    groupbyobj = {groups: [],df: df}
-    groupbyobj.agg = function(aggdict){
-        index = []
-        rows = []
-        for(var group of this.groups){
-            index.push(group.name)
-            row = {}
-            for(var key in aggdict){
-                if (!Array.isArray(aggdict[key])){
-                    aggdict[key] = [aggdict[key]]
-                }
-                for(var metric_func of aggdict[key]){
-                    var filtered = this.df.loc({rows:group.filter})
-                    var column = filtered[key]
-                    var metric = column[metric_func]()
-                    row[key+":"+metric_func]=metric
-                }
-            }
-            rows.push(row)
-        }
-        return new dfd.DataFrame(rows, {index:index})
-    }
+// df_groupby = function(df, keys){
+//     results = {}
+//     for(var key of keys){
+//         results[key] = {}
+//         results[key].unique = []
+//         if (!(key in df)){
+//             console.error("'"+key+"' not in dataframe!")
+//         } else {
+//             for(val of df[key].unique().values){
+//                 map = {}
+//                 map[key]=val
+//                 results[key].unique.push(map)
+//             }
+//         }
+//     }
+//     pairings = null
+//     for(var key of keys){
+//         if(pairings == null){
+//             pairings = results[key].unique
+//         } else {
+//             pairings = pairings.flatMap(map => {
+//                 //return {...map, ...results[key].unique}
+//                 return results[key].unique.map(othermap => {return {...map, ...othermap};})
+//             })
+//         }
+//     }
+//     groupbyobj = {groups: [],df: df}
+//     groupbyobj.agg = function(aggdict){
+//         index = []
+//         rows = []
+//         for(var group of this.groups){
+//             index.push(group.name)
+//             row = {}
+//             for(var key in aggdict){
+//                 if (!Array.isArray(aggdict[key])){
+//                     aggdict[key] = [aggdict[key]]
+//                 }
+//                 for(var metric_func of aggdict[key]){
+//                     var filtered = this.df.loc({rows:group.filter})
+//                     var column = filtered[key]
+//                     var metric = column[metric_func]()
+//                     row[key+":"+metric_func]=metric
+//                 }
+//             }
+//             rows.push(row)
+//         }
+//         return new dfd.DataFrame(rows, {index:index})
+//     }
     
-    for(var pairing of pairings){
-        filter = df['points'].apply((x)=>true) //all true
-        for(var key in pairing){
-            filter = filter.and(df[key].eq(pairing[key]))
-        }
-        matches = df.loc({rows:filter})
-        if(matches.$index.length>0){
-            group = {}
-            group.name = JSON.stringify(pairing)
-            group.filter = filter
-            group.count = matches.$index.length
-            groupbyobj.groups.push(group)
-        }
-    }
-    return groupbyobj
-    // console.log(pairings)
-}
+//     for(var pairing of pairings){
+//         filter = df['points'].apply((x)=>true) //all true
+//         for(var key in pairing){
+//             filter = filter.and(df[key].eq(pairing[key]))
+//         }
+//         matches = df.loc({rows:filter})
+//         if(matches.$index.length>0){
+//             group = {}
+//             group.name = JSON.stringify(pairing)
+//             group.filter = filter
+//             group.count = matches.$index.length
+//             groupbyobj.groups.push(group)
+//         }
+//     }
+//     return groupbyobj
+//     // console.log(pairings)
+// }
 ko.options.deferUpdates = true;
-games_promise = dfd.read_csv("2021_11_26_ttsarmada_cloud.csv")
-players_promise = dfd.read_csv("2021_11_24_ttsarmada_cloud_players.csv")
+// games_promise = dfd.read_csv("2021_11_26_ttsarmada_cloud.csv")
+// players_promise = dfd.read_csv("2021_11_24_ttsarmada_cloud_players.csv")
+games_promise = DataFrame.read_csv_async("2021_11_26_ttsarmada_cloud.csv")
+players_promise = DataFrame.read_csv_async("2021_11_24_ttsarmada_cloud_players.csv")
+// var startLoadDanjs = performance.now()
 Promise.all([games_promise,players_promise])
 .then((results) => {
+    // var stopLoadDanjs = performance.now()
+    // console.log(`danfojs took ${((stopLoadDanjs - startLoadDanjs)/1).toFixed(4)} milliseconds to load`)
     dfgames = results[0]
     dfplayers = results[1]
     // var moralo = dfgames['commander'].ne("Moralo Eval (22)")
@@ -859,12 +875,12 @@ Promise.all([games_promise,players_promise])
     // dfgames = dfgames.loc({rows:moralo.and(bossk).and(nocmdr).and(Ackbar28).and(notnull)})
     // dfgames['name'].apply(s => String(s), {inplace:true})//Doesn't work?
     // dfgames.fillna(['False',''],{columns:['ranked','tournamentCode']})
-    let i_win = dfgames['win'].apply(w => (w=="True"?1:0))
-    dfgames.addColumn({column:'i_win', values:i_win, inplace:true})
-    let i_winbig = dfgames['points'].apply(w => (w>=8?1:0))
-    dfgames.addColumn({column:'i_winbig', values:i_winbig, inplace:true})
-    let i_losebig = dfgames['points'].apply(w => (w<=3?1:0))
-    dfgames.addColumn({column:'i_losebig', values:i_losebig, inplace:true})
+    // let i_win = dfgames['win'].apply(w => (w=="True"?1:0))
+    // dfgames.addColumn({column:'i_win', values:i_win, inplace:true})
+    // let i_winbig = dfgames['points'].apply(w => (w>=8?1:0))
+    // dfgames.addColumn({column:'i_winbig', values:i_winbig, inplace:true})
+    // let i_losebig = dfgames['points'].apply(w => (w<=3?1:0))
+    // dfgames.addColumn({column:'i_losebig', values:i_losebig, inplace:true})
 
     // for (key in ship_filters){
     //     let archcnt = dfgames['points'].apply(p => 0)
@@ -925,7 +941,7 @@ Promise.all([games_promise,players_promise])
     // koModel.numberOfGames(dfgames.$index.length)
     koModel.commanders(dfgames['commander'].unique().values.sort())
     koModel.factions(dfgames['faction'].unique().values.sort())
-    koModel.tournamentCodes(dfgames.loc({columns:['tournamentCode']}).values.filter((v, i, a) => v[0]!=null && v[0].length<25).map(r=>String(r[0])).filter((v, i, a) => a.indexOf(v) === i).sort())
+    koModel.tournamentCodes(dfgames['tournamentCode'].values.filter((v, i, a) => v[0]!=null && v[0].length<25).map(r=>String(r[0])).filter((v, i, a) => a.indexOf(v) === i).sort())
 
 
     document.getElementById("loading").classList.remove("d-flex")
@@ -982,41 +998,60 @@ Promise.all([games_promise,players_promise])
     console.log(err);
 })
 
-function timeIt(func,name,log){
+function timeIt(func,name,log,setup){
+    ITERATIONS = 100
+    data = []
+    if(setup){
+        for(var i=0;i<ITERATIONS;i++){
+            data[i]=setup()
+        }
+    }
     var startTime = performance.now()
-    for(var i =0;i<1;i++){
-        func()
+    for(var i =0;i<ITERATIONS;i++){
+        func(data[i])
     }
     var endTime = performance.now()
     if(log){
-        console.log(func())
+        console.log(func(data[0]))
     }
-    console.log(`${name} took ${((endTime - startTime)/1).toFixed(4)} milliseconds`)
+    console.log(`${name} took ${((endTime - startTime)/ITERATIONS).toFixed(4)} milliseconds`)
 }
 function testMine(){
-    timeIt(() => mydf.values,'mydf.values')
-    timeIt(() => mydf['name'].values,'mydf.series.values')
-    timeIt(() => mydf['activations'].mean(),'mydf.series.mean',true)
-    timeIt(() => {
-        filter = mydf['activations'].eq(3)
-        df = mydf.loc({rows:filter})
+    timeIt((df) => df.values,               'mydf.values',       false,()=> mydf.clone())
+    timeIt((df) => df['name'].values,       'mydf.series.values',false,()=> mydf.clone())
+    timeIt((df) => df['activations'].mean(),'mydf.series.mean',  true, ()=> mydf.clone())
+    // timeIt(() => mydf['activations'].mean_nocache(),'mydf.series.mean_nocache',true)
+    // timeIt(() => mydf['activations'].mean_nocache_gen(),'mydf.series.mean_nocache_gen',true)
+    timeIt((df) => {
+        filter = df['activations'].eq(3).or(df['activations'].eq(4))
+        df = df.loc({rows:filter})
         return df['activations'].mean()
         
-    },'mydf.filtered.series.mean',true)
+    },'mydf.filtered.series.mean',true,()=> mydf.clone())
+    timeIt((df) => {
+        filter = df['activations'].eq(3).or(df['activations'].eq(4),{inplace:true})
+        df.loc({rows:filter,inplace:true})
+        return df['activations'].mean()
+        
+    },'mydf.filtered_inplace.series.mean',true,()=> mydf.clone())
 }
 function testDanfo(){
     timeIt(() => dfgames.values,'danfo.values')
     timeIt(() => dfgames['name'].values,'danfo.series.values')
     timeIt(() => dfgames['activations'].mean(),'danfo.series.mean',true)
     timeIt(() => {
-        filter = dfgames['activations'].eq(3)
+        filter = dfgames['activations'].eq(3).or(dfgames['activations'].eq(4))
         df = dfgames.loc({rows:filter})
         return df['activations'].mean()
     },'danfo.filtered.series.mean',true)
 }
-// DataFrame.read_csv_async("2021_11_26_ttsarmada_cloud.csv").then(df => {
-//     mydf = df
-// })
+// setTimeout(()=>{
+//     var startLoadDF = performance.now()
+    // var stopLoadDanjs = performance.now()
+    // console.log(`danfojs took ${((stopLoadDanjs - startLoadDanjs)/1).toFixed(4)} milliseconds to load`)
+    // var endLoadDF = performance.now()
+    // console.log(`readonly_df took ${((endLoadDF - startLoadDF)/1).toFixed(4)} milliseconds to load`)
+// },10000)
 // function loadCsv(data){
 //     parsed = Papa.parse(data, {
 //         skipEmptyLines: true
