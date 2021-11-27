@@ -845,20 +845,20 @@ df_groupby = function(df, keys){
     // console.log(pairings)
 }
 ko.options.deferUpdates = true;
-games_promise = dfd.read_csv("2021_11_24_ttsarmada_cloud.csv")
+games_promise = dfd.read_csv("2021_11_26_ttsarmada_cloud.csv")
 players_promise = dfd.read_csv("2021_11_24_ttsarmada_cloud_players.csv")
 Promise.all([games_promise,players_promise])
 .then((results) => {
     dfgames = results[0]
     dfplayers = results[1]
-    var moralo = dfgames['commander'].ne("Moralo Eval (22)")
-    var bossk = dfgames['commander'].ne("Bossk (23)")
-    var nocmdr = dfgames['commander'].ne("")
-    var Ackbar28 = dfgames['commander'].ne("Admiral Raddus (28)")
-    var notnull = dfgames['commander'].values.map(v => v!=null)
-    dfgames = dfgames.loc({rows:moralo.and(bossk).and(nocmdr).and(Ackbar28).and(notnull)})
-    dfgames['name'].apply(s => String(s), {inplace:true})//Doesn't work?
-    dfgames.fillna(['False',''],{columns:['ranked','tournamentCode']})
+    // var moralo = dfgames['commander'].ne("Moralo Eval (22)")
+    // var bossk = dfgames['commander'].ne("Bossk (23)")
+    // var nocmdr = dfgames['commander'].ne("")
+    // var Ackbar28 = dfgames['commander'].ne("Admiral Raddus (28)")
+    // var notnull = dfgames['commander'].values.map(v => v!=null)
+    // dfgames = dfgames.loc({rows:moralo.and(bossk).and(nocmdr).and(Ackbar28).and(notnull)})
+    // dfgames['name'].apply(s => String(s), {inplace:true})//Doesn't work?
+    // dfgames.fillna(['False',''],{columns:['ranked','tournamentCode']})
     let i_win = dfgames['win'].apply(w => (w=="True"?1:0))
     dfgames.addColumn({column:'i_win', values:i_win, inplace:true})
     let i_winbig = dfgames['points'].apply(w => (w>=8?1:0))
@@ -866,51 +866,51 @@ Promise.all([games_promise,players_promise])
     let i_losebig = dfgames['points'].apply(w => (w<=3?1:0))
     dfgames.addColumn({column:'i_losebig', values:i_losebig, inplace:true})
 
-    for (key in ship_filters){
-        let archcnt = dfgames['points'].apply(p => 0)
-        let archcnt_vs = dfgames['points'].apply(p => 0)
-        for (ship of ship_filters[key]){
-            archcnt = archcnt.add(dfgames[ship])
-            archcnt_vs = archcnt.add(dfgames["VS:"+ship])
-        }
-        dfgames.addColumn({column:key,values:archcnt,inplace:true})
-        dfgames.addColumn({column:key+"_VS",values:archcnt_vs,inplace:true})
-    }
-    shiptypes = dfgames.loc({columns:Object.keys(ship_filters)})
-    archtypes = shiptypes.values.map((r) => {
-        arch = {}
-        for (var i in r){
-            if (r[i]>0){
-                arch[shiptypes.$columns[i]] = r[i]
-            }
-        }
-        archstr = ""
-        for (var key in arch){
-            if(archstr.length>0){
-                archstr+=", "
-            }
-            if(arch[key]>1){
-                archstr += arch[key]+" x "
-            }
-            archstr+=key
-        }
-        // return JSON.stringify(arch)
-        return archstr
-    })
-    dfgames.addColumn({column:'archtype', values:archtypes, inplace:true})
+    // for (key in ship_filters){
+    //     let archcnt = dfgames['points'].apply(p => 0)
+    //     let archcnt_vs = dfgames['points'].apply(p => 0)
+    //     for (ship of ship_filters[key]){
+    //         archcnt = archcnt.add(dfgames[ship])
+    //         archcnt_vs = archcnt.add(dfgames["VS:"+ship])
+    //     }
+    //     dfgames.addColumn({column:key,values:archcnt,inplace:true})
+    //     dfgames.addColumn({column:key+"_VS",values:archcnt_vs,inplace:true})
+    // }
+    // shiptypes = dfgames.loc({columns:Object.keys(ship_filters)})
+    // archtypes = shiptypes.values.map((r) => {
+    //     arch = {}
+    //     for (var i in r){
+    //         if (r[i]>0){
+    //             arch[shiptypes.$columns[i]] = r[i]
+    //         }
+    //     }
+    //     archstr = ""
+    //     for (var key in arch){
+    //         if(archstr.length>0){
+    //             archstr+=", "
+    //         }
+    //         if(arch[key]>1){
+    //             archstr += arch[key]+" x "
+    //         }
+    //         archstr+=key
+    //     }
+    //     // return JSON.stringify(arch)
+    //     return archstr
+    // })
+    // dfgames.addColumn({column:'archtype', values:archtypes, inplace:true})
 
 
-    opposing_shiptypes = dfgames.loc({columns:Object.keys(ship_filters).map(s => s+"_VS")})
-    opposing_archtypes = opposing_shiptypes.values.map((r) => {
-        arch = {}
-        for (var i in r){
-            if (r[i]>0){
-                arch[shiptypes.$columns[i].replace("_VS","")] = r[i]
-            }
-        }
-        return JSON.stringify(arch)
-    })
-    dfgames.addColumn({column:'opposing_archtype', values:opposing_archtypes, inplace:true})
+    // opposing_shiptypes = dfgames.loc({columns:Object.keys(ship_filters).map(s => s+"_VS")})
+    // opposing_archtypes = opposing_shiptypes.values.map((r) => {
+    //     arch = {}
+    //     for (var i in r){
+    //         if (r[i]>0){
+    //             arch[shiptypes.$columns[i].replace("_VS","")] = r[i]
+    //         }
+    //     }
+    //     return JSON.stringify(arch)
+    // })
+    // dfgames.addColumn({column:'opposing_archtype', values:opposing_archtypes, inplace:true})
 
     koModel = new AnalysisModel(dfgames,dfplayers)
     shipdict = {}
@@ -977,6 +977,52 @@ Promise.all([games_promise,players_promise])
     // }
     
     // df.plot("plot_div1").scatter({ x: "MoV", y: "squads" })
+
 }).catch(err => {
     console.log(err);
 })
+
+function timeIt(func,name,log){
+    var startTime = performance.now()
+    for(var i =0;i<1;i++){
+        func()
+    }
+    var endTime = performance.now()
+    if(log){
+        console.log(func())
+    }
+    console.log(`${name} took ${((endTime - startTime)/1).toFixed(4)} milliseconds`)
+}
+function testMine(){
+    timeIt(() => mydf.values,'mydf.values')
+    timeIt(() => mydf['name'].values,'mydf.series.values')
+    timeIt(() => mydf['activations'].mean(),'mydf.series.mean',true)
+    timeIt(() => {
+        filter = mydf['activations'].eq(3)
+        df = mydf.loc({rows:filter})
+        return df['activations'].mean()
+        
+    },'mydf.filtered.series.mean',true)
+}
+function testDanfo(){
+    timeIt(() => dfgames.values,'danfo.values')
+    timeIt(() => dfgames['name'].values,'danfo.series.values')
+    timeIt(() => dfgames['activations'].mean(),'danfo.series.mean',true)
+    timeIt(() => {
+        filter = dfgames['activations'].eq(3)
+        df = dfgames.loc({rows:filter})
+        return df['activations'].mean()
+    },'danfo.filtered.series.mean',true)
+}
+// DataFrame.read_csv_async("2021_11_26_ttsarmada_cloud.csv").then(df => {
+//     mydf = df
+// })
+// function loadCsv(data){
+//     parsed = Papa.parse(data, {
+//         skipEmptyLines: true
+//     })
+//     mydf = new DataFrame(parsed.data)
+// }
+// document.addEventListener("DOMContentLoaded",function() {
+//     fetch("2021_11_24_ttsarmada_cloud.csv", { method: 'get' }).then((resp) => resp.text()).then(loadCsv)
+// });
