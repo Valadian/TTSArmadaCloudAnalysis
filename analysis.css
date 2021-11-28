@@ -27,12 +27,6 @@
     color:#e9ecef;
 
 }
-@media (min-width: 600px) {
-    .card-body{
-        max-height: 720px;
-    }
-}
-
 @media (max-width: 600px) { /*Small Screen*/
     
     .card {
@@ -74,6 +68,10 @@
     }
 }
 @media (min-width: 1570px){
+    #statistics-card-body{
+        max-height: 720px;
+        overflow: auto;
+    }
     .col-xxl-1 { flex: 0 0 8% !important; max-width: 8% !important; }
     .col-xxl-2 { flex: 0 0 16% !important; max-width: 16% !important; }
     .col-xxl-3 { flex: 0 0 25% !important; max-width: 25% !important; }
