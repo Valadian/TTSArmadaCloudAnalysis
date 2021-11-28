@@ -69,7 +69,7 @@
 }
 @media (min-width: 1570px){
     #statistics-card-body{
-        max-height: 720px;
+        max-height: 675px;
         overflow: auto;
     }
     .col-xxl-1 { flex: 0 0 8% !important; max-width: 8% !important; }
