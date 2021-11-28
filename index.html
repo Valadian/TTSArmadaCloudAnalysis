@@ -31,10 +31,14 @@
 
 <body>
     <main role="main" class="container-fluid">
-        <div class="d-flex justify-content-between">
+        <textarea  style="position:absolute; left:-9999px;top:0" id="url" data-bind="value:url"></textarea>
+        <div class="d-none d-sm-flex justify-content-between">
             <h1><a data-bind="attr:{href:homeurl}">TTS Cloud Game Analyzer</a></h1>
-            <textarea  style="position:absolute; left:-9999px;top:0" id="url" data-bind="value:url"></textarea>
             <button class="btn btn-outline-success" data-bind="click: copyurl"><i class="bi bi-link"></i> Copy Url</button>
+        </div>
+        <div class="d-block d-sm-none">
+            <h4><a data-bind="attr:{href:homeurl}">TTS Cloud Game Analyzer</a></h4>
+            <button class="btn btn-outline-success w-100" data-bind="click: copyurl"><i class="bi bi-link"></i> Copy Url</button>
         </div>
         
         <div id="loading" class="d-flex align-items-center mt-3" data-bind>
@@ -292,100 +296,101 @@
                     <div class="card-header">
                         <span>
                         <i class="bi bi-bar-chart-line"></i> Tournament Point Distribution
+                        <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#plot-card-body" aria-expanded="true" aria-controls="collapseOne"></button>
+
                         <!-- ko if: selectedFactions().length>0-->
                         <span class="badge rounded-pill bg-info">
-                            <span data-bind="text: selectedFactions().join(', ')"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => selectedFactions([])"></i>
+                            <span data-bind="text: selectedFactions().join(', ')"></span>
                         </span>
                         <!-- /ko -->
                         <!-- ko if: selectedCommanders().length>0-->
                         <span class="badge rounded-pill bg-light text-dark">
-                            <span data-bind="text: selectedCommanders().join(', ')"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => selectedCommanders([])"></i>
+                            <span data-bind="text: selectedCommanders().join(', ')"></span>
                         </span>
                         <!-- /ko -->
                         <!-- ko if: selectedTournamentCodes().length>0-->
                         <span class="badge rounded-pill bg-warning text-dark">
-                            <span data-bind="text: selectedTournamentCodes()[0]"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => selectedTournamentCodes([])"></i>
+                            <span data-bind="text: selectedTournamentCodes()[0]"></span>
                         </span>
                         <!-- /ko -->
                         <!-- ko if: selectedPlayers().length>0-->
                         <span class="badge rounded-pill bg-dark">
-                            <span data-bind="text: selectedPlayers().join(', ')"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => selectedPlayers([])"></i>
+                            <span data-bind="text: selectedPlayers().join(', ')"></span>
                         </span>
                         <!-- /ko -->
                         <!-- ko if: selectedCards().length>0-->
                         <span class="badge rounded-pill bg-success" data-bind="css:{'bg-success':!selectedcards_not(),'bg-danger':selectedcards_not()}">
-                            <span data-bind="text: (selectedcards_not()?'Not ':'')+(selectedcards_op()=='and'?'All: ':'Any: ')+(selectedCards().join(', '))"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => selectedCards([])"></i>
+                            <span data-bind="text: (selectedcards_not()?'Not ':'')+(selectedcards_op()=='and'?'All: ':'Any: ')+(selectedCards().join(', '))"></span>
                         </span>
                         <!-- /ko -->
                         
                         <!-- ko if: opposingCards().length>0-->
                         <span class="badge rounded-pill bg-success" data-bind="css:{'bg-success':!opposingcards_not(),'bg-danger':opposingcards_not()}">
-                            <span data-bind="text: 'Opposing '+(opposingcards_not()?'Not ':'')+(opposingcards_op()=='and'?'All: ':'Any: ')+(opposingCards().join(', '))"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => opposingCards([])"></i>
+                            <span data-bind="text: 'Opposing '+(opposingcards_not()?'Not ':'')+(opposingcards_op()=='and'?'All: ':'Any: ')+(opposingCards().join(', '))"></span>
                         </span>
                         <!-- /ko -->
                         
                         <!-- ko if: ranked()=="true"-->
                         <span class="badge rounded-pill bg-warning text-dark">
-                            <span>RANKED</span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => ranked('')"></i>
+                            <span>RANKED</span>
                         </span>
                         <!-- /ko -->
                         
                         <!-- ko if: varsity_only()=="true"-->
                         <span class="badge rounded-pill bg-primary">
-                            <span>Veteran</span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => varsity_only('')"></i>
+                            <span>Veteran</span>
                         </span>
                         <!-- /ko -->
                         
                         <!-- ko if: firstsecond()=="first"-->
                         <span class="badge rounded-pill bg-warning text-dark">
-                            <span>FIRST</span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => firstsecond('')"></i>
+                            <span>FIRST</span>
                         </span>
                         <!-- /ko -->
                         <!-- ko if: firstsecond()=="second"-->
                         <span class="badge rounded-pill bg-light text-dark">
-                            <span>SECOND</span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => firstsecond('')"></i>
+                            <span>SECOND</span>
                         </span>
                         <!-- /ko -->
 
                         <!-- ko if: groupby_filter()-->
                         <span class="badge rounded-pill bg-primary">
-                            <span data-bind="text: groupby_filter_column()+' = '+groupby_filter()"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => {$root.groupby_filter('');$root.groupby_filter_column('')}"></i>
+                            <span data-bind="text: groupby_filter_column()+' = '+groupby_filter()"></span>
                         </span>
                         <!-- /ko-->
 
                         <!-- ko foreach: subgroup_entries-->
                         <!-- ko if: $data[1]==0-->
                         <span class="badge rounded-pill bg-danger">
-                            <span data-bind="text: $data[0]"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => $root.subgroup({})"></i>
+                            <span data-bind="text: $data[0]"></span>
                         </span>
                         <!-- /ko -->
                         <!-- ko if: $data[1]==1-->
                         <span class="badge rounded-pill bg-success">
-                            <span data-bind="text: $data[0]"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => $root.subgroup({})"></i>
+                            <span data-bind="text: $data[0]"></span>
                         </span>
                         <!-- /ko -->
                         <!-- ko if: $data[1]>1-->
                         <span class="badge rounded-pill bg-primary">
-                            <span data-bind="text: $data[0]+' x '+$data[1]"></span>
                             <i class="bi bi-x" style="cursor: pointer;" data-bind="click: () => $root.subgroup({})"></i>
+                            <span data-bind="text: $data[0]+' x '+$data[1]"></span>
                         </span>
                         <!-- /ko -->
                         <!-- /ko-->
                         </span>
-                        <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#plot-card-body" aria-expanded="true" aria-controls="collapseOne"></button>
                     </div>
                     <div class="card-body collapse show" id="plot-card-body">
                         <div id="plot_hist"></div>
@@ -455,10 +460,10 @@
                                 <tr>
                                     <td>
                                         <!-- ko if: $root.groupby()=='shiptype'-->
-                                        <button class="btn btn-secondary" data-bind="click: () =>$root.toggle_groupby_subgroup($data),css:{'btn-secondary':JSON.stringify($data[6]) != JSON.stringify($root.subgroup()), 'btn-warning':JSON.stringify($data[6])==JSON.stringify($root.subgroup())}"><i class="bi bi-bar-chart-line-fill"></i></button>          
+                                        <button class="btn btn-secondary filter-btn" data-bind="click: () =>$root.toggle_groupby_subgroup($data),css:{'btn-secondary':JSON.stringify($data[6]) != JSON.stringify($root.subgroup()), 'btn-warning':JSON.stringify($data[6])==JSON.stringify($root.subgroup())}"><i class="bi bi-bar-chart-line-fill"></i></button>          
                                         <!-- /ko -->
                                         <!-- ko if: $root.groupby()!='shiptype' && $root.groupby()!='squads'-->
-                                        <button class="btn btn-secondary" data-bind="click: () => $root.toggle_groupby_filter($data),css:{'btn-secondary':$root.groupby_filter()!=$data[0], 'btn-warning':$root.groupby_filter()==$data[0]}"><i class="bi bi-bar-chart-line-fill"></i></button>          
+                                        <button class="btn btn-secondary filter-btn" data-bind="click: () => $root.toggle_groupby_filter($data),css:{'btn-secondary':$root.groupby_filter()!=$data[0], 'btn-warning':$root.groupby_filter()==$data[0]}"><i class="bi bi-bar-chart-line-fill"></i></button>          
                                         <!-- /ko -->
 
                                         
