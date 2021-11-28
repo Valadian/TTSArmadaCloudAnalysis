@@ -811,7 +811,7 @@ loadData = function(){
         koModel.ships_byname(shipdict)
         koModel.commanders(dfgames['commander'].unique().values.sort())
         koModel.factions(dfgames['faction'].unique().values.sort())
-        koModel.tournamentCodes(dfgames['tournamentCode'].values.filter((v, i, a) => v[0]!=null && v[0].length<25).map(r=>String(r[0])).filter((v, i, a) => a.indexOf(v) === i).sort())
+        koModel.tournamentCodes(dfgames['tournamentCode'].values.filter((v, i, a) => v[0]!=null && v[0].length<25).filter((v, i, a) => a.indexOf(v) === i).sort()) //.map(r=>String(r[0]))
 
 
         document.getElementById("loading").classList.remove("d-flex")

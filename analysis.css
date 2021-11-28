@@ -56,4 +56,12 @@
         /* font-weight: normal !important; */
         white-space: inherit  !important;
     }
+    #factionSelection,
+    #commanderSelection,
+    #tournamentSelection,
+    #playerSelection,
+    #cardSelection,
+    #opposingCardSelection {
+        padding-right:50px;
+    }
 }
