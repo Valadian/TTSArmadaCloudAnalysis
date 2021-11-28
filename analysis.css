@@ -27,6 +27,9 @@
     color:#e9ecef;
 
 }
+.card-body{
+    max-height: 720px;
+}
 
 @media (max-width: 600px) { /*Small Screen*/
     
@@ -56,12 +59,29 @@
         /* font-weight: normal !important; */
         white-space: inherit  !important;
     }
+    .overflow-auto{
+        margin-right: 35px;
+    }
     #factionSelection,
     #commanderSelection,
     #tournamentSelection,
     #playerSelection,
     #cardSelection,
     #opposingCardSelection {
-        padding-right:50px;
+        padding-right:35px;
     }
 }
+@media (min-width: 1570px){
+    .col-xxl-1 { flex: 0 0 8% !important; max-width: 8% !important; }
+    .col-xxl-2 { flex: 0 0 16% !important; max-width: 16% !important; }
+    .col-xxl-3 { flex: 0 0 25% !important; max-width: 25% !important; }
+    .col-xxl-4 { flex: 0 0 33% !important; max-width: 33% !important; }
+    .col-xxl-5 { flex: 0 0 41% !important; max-width: 41% !important; }
+    .col-xxl-6 { flex: 0 0 50% !important; max-width: 50% !important; }
+    .col-xxl-7 { flex: 0 0 58% !important; max-width: 58% !important; }
+    .col-xxl-8 { flex: 0 0 66% !important; max-width: 66% !important; }
+    .col-xxl-9 { flex: 0 0 75% !important; max-width: 75% !important; }
+    .col-xxl-10 { flex: 0 0 83% !important; max-width: 83% !important; }
+    .col-xxl-11 { flex: 0 0 91% !important; max-width: 91% !important; }
+    .col-xxl-12 { flex: 0 0 100% !important; max-width: 100% !important; }
+  }
