@@ -404,7 +404,7 @@ function AnalysisModel(df,dfplayers){
             if (df.$index.length==0){
                 return []
             }
-            var ranges = [["None",-1,0],["Minimal (0-40]",0,40],["Light (40-80]",40,80],["Moderate (80-100]",80,100],["Full (100-130]",100,130],["Max (130-134]",130,134]]
+            var ranges = [["None",-1,0],["Minimal (0-45]",0,45],["Light (45-66]",45,66],["Moderate (66-100]",66,100],["Full (100-126]",100,126],["Max (126-134]",126,134]]
             var filters = ranges.map(r => df[this.groupby_opposing()+'squads'].gt(r[1]).and(df[this.groupby_opposing()+'squads'].le(r[2]),{inplace:true}))
             var dfs = filters.map(filter => df.loc({rows:filter}))
             
