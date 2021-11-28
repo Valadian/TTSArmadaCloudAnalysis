@@ -335,3 +335,52 @@ class GroupByObj{
         return new DataFrame(rows, cols, index)//TODO: string index is a problem
     }
 }
+
+//Test Automation
+// function timeIt(func,name,log,setup){
+//     ITERATIONS = 100
+//     data = []
+//     if(setup){
+//         for(var i=0;i<ITERATIONS;i++){
+//             data[i]=setup()
+//         }
+//     }
+//     var startTime = performance.now()
+//     for(var i =0;i<ITERATIONS;i++){
+//         func(data[i])
+//     }
+//     var endTime = performance.now()
+//     if(log){
+//         console.log(func(data[0]))
+//     }
+//     console.log(`${name} took ${((endTime - startTime)/ITERATIONS).toFixed(4)} milliseconds`)
+// }
+// function testMine(){
+//     timeIt((df) => df.values,               'mydf.values',       false,()=> mydf.clone())
+//     timeIt((df) => df['name'].values,       'mydf.series.values',false,()=> mydf.clone())
+//     timeIt((df) => df['activations'].mean(),'mydf.series.mean',  true, ()=> mydf.clone())
+//     // timeIt(() => mydf['activations'].mean_nocache(),'mydf.series.mean_nocache',true)
+//     // timeIt(() => mydf['activations'].mean_nocache_gen(),'mydf.series.mean_nocache_gen',true)
+//     timeIt((df) => {
+//         filter = df['activations'].eq(3).or(df['activations'].eq(4))
+//         df = df.loc({rows:filter})
+//         return df['activations'].mean()
+        
+//     },'mydf.filtered.series.mean',true,()=> mydf.clone())
+//     timeIt((df) => {
+//         filter = df['activations'].eq(3).or(df['activations'].eq(4),{inplace:true})
+//         df.loc({rows:filter,inplace:true})
+//         return df['activations'].mean()
+        
+//     },'mydf.filtered_inplace.series.mean',true,()=> mydf.clone())
+// }
+// function testDanfo(){
+//     timeIt(() => dfgames.values,'danfo.values')
+//     timeIt(() => dfgames['name'].values,'danfo.series.values')
+//     timeIt(() => dfgames['activations'].mean(),'danfo.series.mean',true)
+//     timeIt(() => {
+//         filter = dfgames['activations'].eq(3).or(dfgames['activations'].eq(4))
+//         df = dfgames.loc({rows:filter})
+//         return df['activations'].mean()
+//     },'danfo.filtered.series.mean',true)
+// }

@@ -790,276 +790,69 @@ ship_filters = {
     "Hardcell":["Hardcell-class Transport (47)","Hardcell-class Battle Refit (52)"],
 
 }
+loadData = function(){
+    ko.options.deferUpdates = true;
+    games_promise = DataFrame.read_csv_async("2021_11_27_ttsarmada_cloud.csv")
+    players_promise = DataFrame.read_csv_async("2021_11_27_ttsarmada_cloud_players.csv")
+    Promise.all([games_promise,players_promise])
+    .then((results) => {
+        dfgames = results[0]
+        dfplayers = results[1]
 
-// df_groupby = function(df, keys){
-//     results = {}
-//     for(var key of keys){
-//         results[key] = {}
-//         results[key].unique = []
-//         if (!(key in df)){
-//             console.error("'"+key+"' not in dataframe!")
-//         } else {
-//             for(val of df[key].unique().values){
-//                 map = {}
-//                 map[key]=val
-//                 results[key].unique.push(map)
-//             }
-//         }
-//     }
-//     pairings = null
-//     for(var key of keys){
-//         if(pairings == null){
-//             pairings = results[key].unique
-//         } else {
-//             pairings = pairings.flatMap(map => {
-//                 //return {...map, ...results[key].unique}
-//                 return results[key].unique.map(othermap => {return {...map, ...othermap};})
-//             })
-//         }
-//     }
-//     groupbyobj = {groups: [],df: df}
-//     groupbyobj.agg = function(aggdict){
-//         index = []
-//         rows = []
-//         for(var group of this.groups){
-//             index.push(group.name)
-//             row = {}
-//             for(var key in aggdict){
-//                 if (!Array.isArray(aggdict[key])){
-//                     aggdict[key] = [aggdict[key]]
-//                 }
-//                 for(var metric_func of aggdict[key]){
-//                     var filtered = this.df.loc({rows:group.filter})
-//                     var column = filtered[key]
-//                     var metric = column[metric_func]()
-//                     row[key+":"+metric_func]=metric
-//                 }
-//             }
-//             rows.push(row)
-//         }
-//         return new dfd.DataFrame(rows, {index:index})
-//     }
-    
-//     for(var pairing of pairings){
-//         filter = df['points'].apply((x)=>true) //all true
-//         for(var key in pairing){
-//             filter = filter.and(df[key].eq(pairing[key]))
-//         }
-//         matches = df.loc({rows:filter})
-//         if(matches.$index.length>0){
-//             group = {}
-//             group.name = JSON.stringify(pairing)
-//             group.filter = filter
-//             group.count = matches.$index.length
-//             groupbyobj.groups.push(group)
-//         }
-//     }
-//     return groupbyobj
-//     // console.log(pairings)
-// }
-ko.options.deferUpdates = true;
-// games_promise = dfd.read_csv("2021_11_26_ttsarmada_cloud.csv")
-// players_promise = dfd.read_csv("2021_11_24_ttsarmada_cloud_players.csv")
-games_promise = DataFrame.read_csv_async("2021_11_27_ttsarmada_cloud.csv")
-players_promise = DataFrame.read_csv_async("2021_11_27_ttsarmada_cloud_players.csv")
-// var startLoadDanjs = performance.now()
-Promise.all([games_promise,players_promise])
-.then((results) => {
-    // var stopLoadDanjs = performance.now()
-    // console.log(`danfojs took ${((stopLoadDanjs - startLoadDanjs)/1).toFixed(4)} milliseconds to load`)
-    dfgames = results[0]
-    dfplayers = results[1]
-    // var moralo = dfgames['commander'].ne("Moralo Eval (22)")
-    // var bossk = dfgames['commander'].ne("Bossk (23)")
-    // var nocmdr = dfgames['commander'].ne("")
-    // var Ackbar28 = dfgames['commander'].ne("Admiral Raddus (28)")
-    // var notnull = dfgames['commander'].values.map(v => v!=null)
-    // dfgames = dfgames.loc({rows:moralo.and(bossk).and(nocmdr).and(Ackbar28).and(notnull)})
-    // dfgames['name'].apply(s => String(s), {inplace:true})//Doesn't work?
-    // dfgames.fillna(['False',''],{columns:['ranked','tournamentCode']})
-    // let i_win = dfgames['win'].apply(w => (w=="True"?1:0))
-    // dfgames.addColumn({column:'i_win', values:i_win, inplace:true})
-    // let i_winbig = dfgames['points'].apply(w => (w>=8?1:0))
-    // dfgames.addColumn({column:'i_winbig', values:i_winbig, inplace:true})
-    // let i_losebig = dfgames['points'].apply(w => (w<=3?1:0))
-    // dfgames.addColumn({column:'i_losebig', values:i_losebig, inplace:true})
-
-    // for (key in ship_filters){
-    //     let archcnt = dfgames['points'].apply(p => 0)
-    //     let archcnt_vs = dfgames['points'].apply(p => 0)
-    //     for (ship of ship_filters[key]){
-    //         archcnt = archcnt.add(dfgames[ship])
-    //         archcnt_vs = archcnt.add(dfgames["VS:"+ship])
-    //     }
-    //     dfgames.addColumn({column:key,values:archcnt,inplace:true})
-    //     dfgames.addColumn({column:key+"_VS",values:archcnt_vs,inplace:true})
-    // }
-    // shiptypes = dfgames.loc({columns:Object.keys(ship_filters)})
-    // archtypes = shiptypes.values.map((r) => {
-    //     arch = {}
-    //     for (var i in r){
-    //         if (r[i]>0){
-    //             arch[shiptypes.$columns[i]] = r[i]
-    //         }
-    //     }
-    //     archstr = ""
-    //     for (var key in arch){
-    //         if(archstr.length>0){
-    //             archstr+=", "
-    //         }
-    //         if(arch[key]>1){
-    //             archstr += arch[key]+" x "
-    //         }
-    //         archstr+=key
-    //     }
-    //     // return JSON.stringify(arch)
-    //     return archstr
-    // })
-    // dfgames.addColumn({column:'archtype', values:archtypes, inplace:true})
-
-
-    // opposing_shiptypes = dfgames.loc({columns:Object.keys(ship_filters).map(s => s+"_VS")})
-    // opposing_archtypes = opposing_shiptypes.values.map((r) => {
-    //     arch = {}
-    //     for (var i in r){
-    //         if (r[i]>0){
-    //             arch[shiptypes.$columns[i].replace("_VS","")] = r[i]
-    //         }
-    //     }
-    //     return JSON.stringify(arch)
-    // })
-    // dfgames.addColumn({column:'opposing_archtype', values:opposing_archtypes, inplace:true})
-
-    koModel = new AnalysisModel(dfgames,dfplayers)
-    shipdict = {}
-    for(var ship in ship_filters){
-        shipdict[ship] = {
-            name: ko.observable(ship),
-            cols: ko.observableArray(ship_filters[ship])
-        }
-        koModel.ships.push(shipdict[ship])
-    }
-    koModel.ships_byname(shipdict)
-    // koModel.numberOfGames(dfgames.$index.length)
-    koModel.commanders(dfgames['commander'].unique().values.sort())
-    koModel.factions(dfgames['faction'].unique().values.sort())
-    koModel.tournamentCodes(dfgames['tournamentCode'].values.filter((v, i, a) => v[0]!=null && v[0].length<25).map(r=>String(r[0])).filter((v, i, a) => a.indexOf(v) === i).sort())
-
-
-    document.getElementById("loading").classList.remove("d-flex")
-    document.getElementById("loading").classList.add("d-none")
-    document.getElementById("filter").classList.remove("invisible")
-    document.getElementById("groupby").classList.remove("invisible")
-    document.getElementById("scores").classList.remove("invisible")
-    document.getElementById("statistics").classList.remove("invisible")
-    document.getElementById("cardmetrics").classList.remove("invisible")
-    document.getElementById("nemesis").classList.remove("invisible")
-
-    
-    ko.applyBindings(koModel);
-
-    setTimeout(function() {
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        let data64 = urlParams.get('data')
-        if(data64){
-            let datastr = atob(data64)
-            let data = JSON.parse(datastr)
-
-            if('selectedFactions' in data){
-                koModel['selectedFactions'](data['selectedFactions'])
+        koModel = new AnalysisModel(dfgames,dfplayers)
+        shipdict = {}
+        for(var ship in ship_filters){
+            shipdict[ship] = {
+                name: ko.observable(ship),
+                cols: ko.observableArray(ship_filters[ship])
             }
+            koModel.ships.push(shipdict[ship])
+        }
+        koModel.ships_byname(shipdict)
+        koModel.commanders(dfgames['commander'].unique().values.sort())
+        koModel.factions(dfgames['faction'].unique().values.sort())
+        koModel.tournamentCodes(dfgames['tournamentCode'].values.filter((v, i, a) => v[0]!=null && v[0].length<25).map(r=>String(r[0])).filter((v, i, a) => a.indexOf(v) === i).sort())
 
-            setTimeout(function() {
-                for(var key of Object.keys(data)){
-                    if(key!='selectedFactions'){
-                        koModel[key](data[key])
-                    }
+
+        document.getElementById("loading").classList.remove("d-flex")
+        document.getElementById("loading").classList.add("d-none")
+        document.getElementById("filter").classList.remove("invisible")
+        document.getElementById("groupby").classList.remove("invisible")
+        document.getElementById("scores").classList.remove("invisible")
+        document.getElementById("statistics").classList.remove("invisible")
+        document.getElementById("cardmetrics").classList.remove("invisible")
+        document.getElementById("nemesis").classList.remove("invisible")
+
+        
+        ko.applyBindings(koModel);
+
+        setTimeout(function() {
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            let data64 = urlParams.get('data')
+            if(data64){
+                let datastr = atob(data64)
+                let data = JSON.parse(datastr)
+
+                if('selectedFactions' in data){
+                    koModel['selectedFactions'](data['selectedFactions'])
                 }
-            },100)
-        }
-    },100)
 
+                setTimeout(function() {
+                    for(var key of Object.keys(data)){
+                        if(key!='selectedFactions'){
+                            koModel[key](data[key])
+                        }
+                    }
+                },100)
+            }
+        },100)
 
-    // var select = document.getElementById("commander")
-    // select.add(new Option("<All Commanders>"))
-    // for(var i in commanders.values){
-    //     select.add(new Option(commanders.values[i]))
-    // }
-    // factions = dfgames['faction'].unique()
-    
-    // var select = document.getElementById("faction")
-    // select.add(new Option("<All Factions>"))
-    // for(var i in factions.values){
-    //     select.add(new Option(factions.values[i]))
-    // }
-    
-    // df.plot("plot_div1").scatter({ x: "MoV", y: "squads" })
-
-}).catch(err => {
-    console.log(err);
-})
-
-function timeIt(func,name,log,setup){
-    ITERATIONS = 100
-    data = []
-    if(setup){
-        for(var i=0;i<ITERATIONS;i++){
-            data[i]=setup()
-        }
-    }
-    var startTime = performance.now()
-    for(var i =0;i<ITERATIONS;i++){
-        func(data[i])
-    }
-    var endTime = performance.now()
-    if(log){
-        console.log(func(data[0]))
-    }
-    console.log(`${name} took ${((endTime - startTime)/ITERATIONS).toFixed(4)} milliseconds`)
+    }).catch(err => {
+        console.log(err);
+    })
 }
-function testMine(){
-    timeIt((df) => df.values,               'mydf.values',       false,()=> mydf.clone())
-    timeIt((df) => df['name'].values,       'mydf.series.values',false,()=> mydf.clone())
-    timeIt((df) => df['activations'].mean(),'mydf.series.mean',  true, ()=> mydf.clone())
-    // timeIt(() => mydf['activations'].mean_nocache(),'mydf.series.mean_nocache',true)
-    // timeIt(() => mydf['activations'].mean_nocache_gen(),'mydf.series.mean_nocache_gen',true)
-    timeIt((df) => {
-        filter = df['activations'].eq(3).or(df['activations'].eq(4))
-        df = df.loc({rows:filter})
-        return df['activations'].mean()
-        
-    },'mydf.filtered.series.mean',true,()=> mydf.clone())
-    timeIt((df) => {
-        filter = df['activations'].eq(3).or(df['activations'].eq(4),{inplace:true})
-        df.loc({rows:filter,inplace:true})
-        return df['activations'].mean()
-        
-    },'mydf.filtered_inplace.series.mean',true,()=> mydf.clone())
-}
-function testDanfo(){
-    timeIt(() => dfgames.values,'danfo.values')
-    timeIt(() => dfgames['name'].values,'danfo.series.values')
-    timeIt(() => dfgames['activations'].mean(),'danfo.series.mean',true)
-    timeIt(() => {
-        filter = dfgames['activations'].eq(3).or(dfgames['activations'].eq(4))
-        df = dfgames.loc({rows:filter})
-        return df['activations'].mean()
-    },'danfo.filtered.series.mean',true)
-}
-// setTimeout(()=>{
-//     var startLoadDF = performance.now()
-    // var stopLoadDanjs = performance.now()
-    // console.log(`danfojs took ${((stopLoadDanjs - startLoadDanjs)/1).toFixed(4)} milliseconds to load`)
-    // var endLoadDF = performance.now()
-    // console.log(`readonly_df took ${((endLoadDF - startLoadDF)/1).toFixed(4)} milliseconds to load`)
-// },10000)
-// function loadCsv(data){
-//     parsed = Papa.parse(data, {
-//         skipEmptyLines: true
-//     })
-//     mydf = new DataFrame(parsed.data)
-// }
-// document.addEventListener("DOMContentLoaded",function() {
-//     fetch("2021_11_24_ttsarmada_cloud.csv", { method: 'get' }).then((resp) => resp.text()).then(loadCsv)
-// });
+
+document.addEventListener("DOMContentLoaded", function(event) { 
+    loadData()
+  });
