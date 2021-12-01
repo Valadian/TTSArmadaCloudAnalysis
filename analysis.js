@@ -433,12 +433,18 @@ function AnalysisModel(df,dfplayers){
             // var losebig = this.df_filtered().groupby([key]).agg({'i_losebig':'mean'})['i_losebig_mean'].values
             // let count_values = this.df_filtered().groupby([key]).agg({'points':'count'})['points_count'].values
             // var win = this.df_filtered().groupby([key]).agg({'win':'mean'})['win_mean'].values
-            return agg.$index.map(function(e, i) {
+            results = agg.$index.map(function(e, i) {
                 var pairing = {}
                 pairing[e] = 1
                 //name, mean, count, win, bigwin, bigloss, data
                 return [e, agg['points:mean'].values[i], agg['points:count'].values[i], agg['win:mean'].values[i],agg['winbig:mean'].values[i],agg['losebig:mean'].values[i],pairing];
-            }).sort((a, b) => b[1]- a[1]);
+            })
+            if(["activations","activation_advantage",'deployment_advantage'].includes(this.groupby())){
+                results = results.sort((a, b) => b[0]- a[0]);
+            } else {
+                results = results.sort((a, b) => b[1]- a[1]);
+            }
+            return results
         }
     },this)
     this.groupby_metrics_filtered = ko.computed(function(){
