@@ -422,7 +422,7 @@ function AnalysisModel(df,dfplayers){
                 return []
             }
             let key = this.groupby_opposing()+this.groupby()
-            if(this.groupby()=="objective"){
+            if(["objective","activation_advantage",'deployment_advantage'].includes(this.groupby())){
                 key = this.groupby()
             }
             agg_dict = {'points':['count','mean'],'win':'mean','winbig':'mean','losebig':'mean'}

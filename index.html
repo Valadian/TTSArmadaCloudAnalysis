@@ -250,9 +250,15 @@
                                     </label>
                                     <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='activation_advantage','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                         <input type="radio" name="grouping" value="activation_advantage" data-bind="checked: groupby" autocomplete="off"> Activation Advantage
+                                        <span data-bind="visible:groupby_opposing()!=''">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>&nbsp;
+                                        </span>
                                     </label>
                                     <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='deployment_advantage','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                         <input type="radio" name="grouping" value="deployment_advantage" data-bind="checked: groupby" autocomplete="off"> Deployment Advantage
+                                        <span data-bind="visible:groupby_opposing()!=''">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>&nbsp;
+                                        </span>
                                     </label>
                                     <label class="btn btn-outline-secondary" data-bind="css: { active: groupby()=='archtype','btn-outline-secondary':groupby_opposing()=='','btn-outline-danger':groupby_opposing()=='opposing_'}">
                                         <input type="radio" name="grouping" value="archtype" data-bind="checked: groupby" autocomplete="off"> Archtypes
