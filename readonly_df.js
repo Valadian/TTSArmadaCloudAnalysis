@@ -49,6 +49,9 @@ class StandaloneSeries{
     sum(){
         return this.values.reduce((a, b) => (a + b),0)
     }
+    mean(){
+        return this.values.reduce((a, b) => (a + b),0) / this.values.length;
+    }
 }
 class Series {
     constructor(data,idx, i_col,skip_dtype_determination){
@@ -147,9 +150,18 @@ class Series {
         this._values_cached = null
     }
     loc(params){
-        filter = params.rows
+        if("rows" in params){
+            filter = params['rows']
+        }
+        // TODO: Support column filters
+        // if("columns" in params){
+        //     filter = params['columns']
+        // }
         if (filter instanceof StandaloneSeries || filter instanceof Series){
             filter = filter.values
+        }
+        if (!Array.isArray(filter)){
+            filter = [filter]
         }
         if(params['inplace']){
             this._index = this._index.filter((e,i) => filter[i])

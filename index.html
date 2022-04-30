@@ -50,7 +50,7 @@
                 <div id="filter" class="card mt-3 invisible">
                     <div class="card-header">
                         <i class="bi bi-filter"></i> Filter
-                    </span>
+                    <!-- </span>  ???? -->
                     <button class="float-right" type="button" data-bs-toggle="collapse" data-bs-target="#filter-card-body" aria-expanded="true" aria-controls="collapseOne">
                     </button>
                     </div>
@@ -508,7 +508,29 @@
                                                 <!-- /ko -->
                                                 <span data-bind="text: $data[2]" style="display:inline-block;width:50px"></span>
                                             </td>
-                                            <td data-bind="text: $data[1].toFixed(2), style: { color: $root.calculate_metric_color($data[1])}"></td>
+                                            <td>
+                                                <span data-bind="text: $data[1].toFixed(2), style: { color: $root.calculate_metric_color($data[1])}"></span>
+                                                <!-- ko if: $root.groupby()=='name' -->
+                                                <!-- ko if: $data[7]>0.5 -->
+                                                <i class="bi bi-caret-up-fill" style="color:greenyellow"></i>
+                                                <!-- /ko -->
+                                                <!-- ko if: $data[7]>1.5 -->
+                                                <i class="bi bi-caret-up-fill" style="color:greenyellow"></i>
+                                                <!-- /ko -->
+                                                <!-- ko if: $data[7]>2.5 -->
+                                                <i class="bi bi-caret-up-fill" style="color:greenyellow"></i>
+                                                <!-- /ko -->
+                                                <!-- ko if: $data[7]<-0.5 -->
+                                                <i class="bi bi-caret-down-fill" style="color: red"></i>
+                                                <!-- /ko -->
+                                                <!-- ko if: $data[7]<-1.5 -->
+                                                <i class="bi bi-caret-down-fill" style="color: red"></i>
+                                                <!-- /ko -->
+                                                <!-- ko if: $data[7]<-2.5 -->
+                                                <i class="bi bi-caret-down-fill" style="color: red"></i>
+                                                <!-- /ko -->
+                                                <!-- /ko -->
+                                            </td>
                                             <td data-bind="text: ($data[3]*100).toFixed(0)+'%', style: { color: $root.calculate_win_color($data[3])}"></td>
                                             <td data-bind="text: ($data[4]*100).toFixed(0)+'%', style: { color: $root.calculate_bigwin_color($data[4])}"></td>
                                             <td data-bind="text: ($data[5]*100).toFixed(0)+'%', style: { color: $root.calculate_bigloss_color($data[5])}"></td>

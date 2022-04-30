@@ -433,11 +433,15 @@ function AnalysisModel(df,dfplayers){
             // var losebig = this.df_filtered().groupby([key]).agg({'i_losebig':'mean'})['i_losebig_mean'].values
             // let count_values = this.df_filtered().groupby([key]).agg({'points':'count'})['points_count'].values
             // var win = this.df_filtered().groupby([key]).agg({'win':'mean'})['win_mean'].values
-            results = agg.$index.map(function(e, i) {
+            results = agg.$index.map((e, i) => {
                 var pairing = {}
                 pairing[e] = 1
-                //name, mean, count, win, bigwin, bigloss, data
-                return [e, agg['points:mean'].values[i], agg['points:count'].values[i], agg['win:mean'].values[i],agg['winbig:mean'].values[i],agg['losebig:mean'].values[i],pairing];
+                //name, mean, count, win, bigwin, bigloss, data, misc
+                row = [e, agg['points:mean'].values[i], agg['points:count'].values[i], agg['win:mean'].values[i],agg['winbig:mean'].values[i],agg['losebig:mean'].values[i],pairing,null];
+                if (this.groupby()=="name"){
+                    row[7] = agg['points:mean'].values[i] - this.meanscore_for_player(e)
+                }
+                return row
             })
             if(["activations","activation_advantage",'deployment_advantage'].includes(this.groupby())){
                 results = results.sort((a, b) => b[0]- a[0]);
@@ -452,7 +456,7 @@ function AnalysisModel(df,dfplayers){
             var count = this.df_filtered().$index.length
             var groups = this.groupby_metrics().length
             if (this.common_toggle_visible()){
-                var mingroupsize = 8 //Math.min(8,count/groups/4)
+                var mingroupsize = 5 //Math.min(8,count/groups/4)
                 return this.groupby_metrics().filter(row => row[2]>=mingroupsize)
             } else {
                 return this.groupby_metrics()
@@ -613,6 +617,12 @@ function AnalysisModel(df,dfplayers){
     this.players = ko.computed(function(){
         return this.df_filtered_bycmdr()['name'].unique().values.sort((a, b) => String(a).localeCompare(String(b), undefined, {sensitivity: 'base'}))
     },this)
+    this.meanscore_per_player = ko.computed(function(){
+        return this.df().groupby('name').agg({'points':'mean', 'win':'mean','winbig':'mean','losebig':'mean'})
+    },this)
+    this.meanscore_for_player = function(player){
+        return this.meanscore_per_player().$rows[player][0]
+    }
     this.toggle_groupby_subgroup = function(data){
         if (JSON.stringify(this.subgroup()) == JSON.stringify(data[6])){
             this.subgroup({})
@@ -726,7 +736,60 @@ function AnalysisModel(df,dfplayers){
                 r: 20,
                 t: 40,
             },
-            shapes: [{
+            shapes: [
+            // Concept here is interesting. But result is confusing.
+            { //Second Mean Score Reference Baseline
+                type: 'line',
+                x0: (this.df_second()['points'] ? this.df_second()['points'].mean(): 0),
+                x1: (this.df_second()['points'] ? this.df_second()['name'].apply(n => this.meanscore_per_player().$rows[n][0]).mean(): 0),
+                y0: 1,
+                y1: 1,
+                yref: 'paper',
+                line: {
+                    color: '#C0C0C0',
+                    width: 5,
+                    dash: 'dot'
+                },
+            },{ //Second Mean Score Reference Baseline CIRCLE
+                type: 'circle',
+                x0: (this.df_second()['points'] ? this.df_second()['name'].apply(n => this.meanscore_per_player().$rows[n][0]).mean(): 0)-0.1,
+                x1: (this.df_second()['points'] ? this.df_second()['name'].apply(n => this.meanscore_per_player().$rows[n][0]).mean(): 0)+0.1,
+                y0: 1-0.015,
+                y1: 1+0.015,
+                yref: 'paper',
+                opacity: 1,
+                fillcolor: '#C0C0C0',
+                line: {
+                    color: '#C0C0C0',
+                    width: 2
+                },
+            },{ //First Mean Score Reference Baseline
+                type: 'line',
+                x0: (this.df_first()['points'] ? this.df_first()['points'].mean(): 0),
+                x1: (this.df_first()['points'] ? this.df_first()['name'].apply(n => this.meanscore_per_player().$rows[n][0]).mean(): 0),
+                y0: 1,
+                y1: 1,
+                yref: 'paper',
+                line: {
+                    color: '#d4af37',
+                    width: 5,
+                    dash: 'dot'
+                },
+            },{ //First Mean Score Reference Baseline CIRCLE
+                type: 'circle',
+                x0: (this.df_first()['points'] ? this.df_first()['name'].apply(n => this.meanscore_per_player().$rows[n][0]).mean(): 0)-0.1,
+                x1: (this.df_first()['points'] ? this.df_first()['name'].apply(n => this.meanscore_per_player().$rows[n][0]).mean(): 0)+0.1,
+                y0: 1-0.015,
+                y1: 1+0.015,
+                yref: 'paper',
+                opacity: 1,
+                fillcolor: '#d4af37',
+                line: {
+                    color: '#d4af37',
+                    width: 2
+                },
+            },
+            { //Second Mean Score
                 type: 'line',
                 x0: (this.df_second()['points'] ? this.df_second()['points'].mean(): 0),
                 x1: (this.df_second()['points'] ? this.df_second()['points'].mean(): 0),
@@ -738,7 +801,7 @@ function AnalysisModel(df,dfplayers){
                     width: 5,
                     dash: 'dot'
                 },
-            },{
+            },{ //First Mean Score
                 type: 'line',
                 x0: (this.df_first()['points'] ? this.df_first()['points'].mean(): 0),
                 x1: (this.df_first()['points'] ? this.df_first()['points'].mean(): 0),
@@ -750,7 +813,7 @@ function AnalysisModel(df,dfplayers){
                     width: 5,
                     dash: 'dot'
                 },
-            }]
+            }] //koModel.df_first()['name'].apply(n => meanscore_by_player.$rows[n][0]).mean()
         }
         var config = {
             // showEditInChartStudio: true,
@@ -798,8 +861,8 @@ ship_filters = {
 }
 loadData = function(){
     ko.options.deferUpdates = true;
-    games_promise = DataFrame.read_csv_async("2021_11_27_ttsarmada_cloud.csv")
-    players_promise = DataFrame.read_csv_async("2021_11_27_ttsarmada_cloud_players.csv")
+    games_promise = DataFrame.read_csv_async("2022_04_29_ttsarmada_cloud.csv")
+    players_promise = DataFrame.read_csv_async("2022_04_29_ttsarmada_cloud_players.csv")
     Promise.all([games_promise,players_promise])
     .then((results) => {
         dfgames = results[0]
